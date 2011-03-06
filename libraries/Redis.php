@@ -37,10 +37,9 @@ class Redis
 	/**
 	 * Write the formatted request to the socket
 	 * @param string request to be written
-	 * @param boolean whether to return the server response or just a boolean
 	 * @return mixed
 	 */
-	private function _write_request($request, $return = FALSE)
+	private function _write_request($request)
 	{
 		
 		fwrite($this->_connection, $request);
@@ -48,32 +47,66 @@ class Redis
 		
 	}
 	
-	private function _read_request($return = FALSE)
+	/**
+	 * Route each response to the appropriate interpreter
+	 */
+	private function _read_request()
 	{
 		
-		$response = trim(fgets($this->_connection));
-				
-		// Return the response directly when when doing a read or in debug mode
-		if ($return === TRUE OR $this->debug)
-		{		
-			return $response;
-			
+		$type = fgetc($this->_connection);
+		
+		switch ($type)
+		{
+			case '+':
+				return $this->_single_line_reply();
+				break;
+			case '-':
+				return $this->_error_reply();
+				break;
+			case ':':
+				return $this->_integer_reply();
+				break;
+			case '$':
+				return $this->_bulk_reply();
+				break;
+			case '*':
+				return $this->_multi_bulk_reply();
+				break;
+			default:
+				return false;
+		}
+		
+	}
+	
+	/**
+	 * Reads the reply before the EOF
+	 * @return mixed
+	 */	
+	private function _single_line_reply()
+	{
+		$value = trim(fgets($this->_connection));
+		
+		if ($value == 'OK')
+		{
+			return TRUE;
 		}
 		else
 		{
-			// Check if we get a success response
-			if ($response == '+OK')
-			{
-				return TRUE;
-				
-			}
-			else
-			{
-				return FALSE;
-				
-			}
-			
+			return $value;
 		}
+		
+	}
+	
+	/**
+	 * Reads to amount of bits to be read and returns value within the pointer and that delimiter
+	 * @return string
+	 */
+	private function _bulk_reply()
+	{
+		
+		// Get the amount of bits to be read
+		$value_length = (int) fgets($this->_connection);
+		return fgets($this->_connection, $value_length + 1);
 		
 	}
 	

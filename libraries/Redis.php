@@ -102,6 +102,18 @@ class Redis
 	}
 	
 	/**
+	 * Finds all keys that match $pattern
+	 * @param string pattern to be matched
+	 * @return array
+	 */
+	public function keys($pattern)
+	{
+		$request = $this->_encode_request('KEYS ' . $pattern);
+		return $this->_write_request($request);
+		
+	}
+	
+	/**
 	 * Connection commands
 	 */
 	
@@ -216,10 +228,37 @@ class Redis
 	{
 		
 		// Get the amount of bits to be read
-		$value_length = (int) fgets($this->_connection);
+		$value_length = (int) fgets($this->_connection);	
 		return fgets($this->_connection, $value_length + 1);
 		
 	}
+	
+	private function _multi_bulk_reply()
+	{
+		
+		// Get the amount of values in the response
+		$total_values = (int) fgets($this->_connection);
+		
+		// Return null when there are no elements	
+		if ($total_values == 0)
+		{
+			return NULL;
+		}
+				
+		// Loop all values and add them to the response array
+		for ($i = 0; $i < $total_values; $i++)
+		{
+			// Move the pointer to correct for the \n\r
+			fgets($this->_connection, 2);
+			$response[] = $this->_bulk_reply();
+			fgets($this->_connection);		
+			
+		}
+		
+		return $response;
+		
+	}
+	
 	
 	/**
 	 * Encode plain-text request to Redis protocol format

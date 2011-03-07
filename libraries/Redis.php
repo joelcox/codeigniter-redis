@@ -1,36 +1,132 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
+/**
+ * CodeIgniter Redis
+ *
+ * A CodeIgniter library to interact with Redis
+ *
+ * @package        	CodeIgniter
+ * @category    	Libraries
+ * @author        	Joël Cox
+ * @link 			https://github.com/joelcox/codeigniter-redis
+ * @license         http://www.opensource.org/licenses/mit-license.html
+ * 
+ * Copyright (c) 2011 Joël Cox and contributers
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 class Redis
 {
 	
-	public $host = 'localhost';
-	public $port = '6379';
-	public $debug;
+	private $_ci;				// CodeIgniter instance
+	private $_password;			// Password for the server
+	private $_connection;		// Connection handle
 	
-	private $_connection;
+	public $host;				// Server host
+	public $port;				// Server post where Redis is listening on
+	public $debug;
 	
 	function __construct()
 	{
 		
 		log_message('debug', 'Redis Class Initialized.');
 		
-		$this->_connection = fsockopen($this->host, $this->port, $errno, $errstr, 3);
+		// Get a CI instance
+		$this->_ci =& get_instance();
+		
+		// Load config
+		$this->_ci->load->config('redis');
+		$this->host = $this->_ci->config->item('redis_host');
+		$this->port = $this->_ci->config->item('redis_port');
+		$this->_password = $this->_ci->config->item('redis_password');
+		
+		// Connect to Redis
+		$this->_connection = @fsockopen($this->host, $this->port, $errno, $errstr, 3);
+		
+		// Display an error message if connection failed
+		if ( ! $this->_connection)
+		{
+			show_error('Could not connect to Redis at ' . $this->host . ':' . $this->port);
+			
+		}
+	
+		// Authenticate when needed
+		$this->_auth();
 		
 	}
 	
+	/**
+	 * String commands
+	 */
+	
+	/**
+	 * Sets key $key with value $value
+	 * @param string name of the key
+	 * @param string contents for the key
+	 * @return boolean
+	 */
 	public function set($key, $value)
 	{
 		
 		$request = $this->_encode_request('SET ' . $key . ' ' . $value);
-		
 		return $this->_write_request($request);
 		
 	}
 	
+	/**
+	 * Gets key $key
+	 * @param string name of the key
+	 * @return string value of the key
+	 */
 	public function get($key)
 	{
 		$request = $this->_encode_request('GET ' . $key);
-		return $this->_write_request($request, TRUE);
+		return $this->_write_request($request);
+		
+	}
+	
+	/**
+	 * Connection commands
+	 */
+	
+	/**
+	 * Runs the AUTH command when password is set
+	 * @return void
+	 */
+	private function _auth()
+	{
+		
+		// Authenticate when password is set
+		if ( ! empty($this->_password))
+		{
+				
+			// Sent auth command to the server
+			$request = $this->_encode_request('AUTH ' . $this->_password);
+			 
+			// See if we authenticated successfully
+			if ( ! $this->_write_request($request))
+			{
+				show_error('Could not connect to Redis, invalid password');
+
+			}
+			
+		}
 		
 	}
 	
@@ -43,12 +139,13 @@ class Redis
 	{
 		
 		fwrite($this->_connection, $request);
-		return $this->_read_request($return);
+		return $this->_read_request();
 		
 	}
 	
 	/**
 	 * Route each response to the appropriate interpreter
+	 * @return mixed
 	 */
 	private function _read_request()
 	{
@@ -95,6 +192,20 @@ class Redis
 			return $value;
 		}
 		
+	}
+	
+	/**
+	 * Write error to log and return false
+	 * @return boolean
+	 */
+	private function _error_reply()
+	{
+		// Extract the error message
+		$error = substr(fgets($this->_connection), 4);
+		log_message('error', 'Redis server returned an error: ' . $error);
+		
+		return FALSE;
+
 	}
 	
 	/**

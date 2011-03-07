@@ -102,6 +102,21 @@ class Redis
 	}
 	
 	/**
+	 * Delete key(s)
+	 * @param mixed keys to be deleted (array or string)
+	 * @return boolean
+	 */
+	public function del($keys)
+	{
+		// Make sure we're dealing with a string that seperates keys by a space
+		$keys = $this->_input_to_string($keys);
+		
+		$request = $this->_encode_request('DEL ' . $keys);
+		return $this->_write_request($request);
+		
+	}
+	
+	/**
 	 * Finds all keys that match $pattern
 	 * @param string pattern to be matched
 	 * @return array
@@ -221,6 +236,16 @@ class Redis
 	}
 	
 	/**
+	 * Returns an integer reply
+	 * @return integer
+	 */
+	private function _integer_reply()
+	{
+		return (int) fgets($this->_connection);
+		
+	}
+	
+	/**
 	 * Reads to amount of bits to be read and returns value within the pointer and that delimiter
 	 * @return string
 	 */
@@ -279,6 +304,32 @@ class Redis
 		}
 		
 		return $request;
+		
+	}
+	
+	/**
+	 * Converts a input to string with spaces seperating values
+	 * @param mixed 
+	 * @return array
+	 */
+	private function _input_to_string($input)
+	{
+	
+		if (is_array($input))
+		{
+			foreach ($input as $element)
+			{
+				@$string .= $element . ' ';
+			}
+				
+		}
+		else
+		{
+			$string = $input;
+			
+		}
+		
+		return $string;
 		
 	}
 	

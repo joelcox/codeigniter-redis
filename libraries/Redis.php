@@ -8,6 +8,7 @@
  * @category    	Libraries
  * @author        	Joël Cox
  * @link 			https://github.com/joelcox/codeigniter-redis
+ * @link			http://joelcox.nl		
  * @license         http://www.opensource.org/licenses/mit-license.html
  * 
  * Copyright (c) 2011 Joël Cox and contributers
@@ -72,14 +73,25 @@ class Redis
 	}
 	
 	/**
-	 * String commands
+	 * Generic command function, just like redis-cli
+	 * @param string command to be executed
+	 * @return mixed
+	 */
+	public function command($cmd)
+	{
+		$request = $this->_encode_request($cmd);
+		return $this->_write_request($request);
+	}
+	
+	/**
+	 * Key commands
 	 */
 	
 	/**
 	 * Sets key $key with value $value
 	 * @param string name of the key
 	 * @param string contents for the key
-	 * @return boolean
+	 * @return string 'OK'
 	 */
 	public function set($key, $value)
 	{
@@ -104,7 +116,7 @@ class Redis
 	/**
 	 * Delete key(s)
 	 * @param mixed keys to be deleted (array or string)
-	 * @return boolean
+	 * @return int
 	 */
 	public function del($keys)
 	{
@@ -129,7 +141,7 @@ class Redis
 	}
 	
 	/**
-	 * Connection commands
+	 * Connection, reading and writing stuff
 	 */
 	
 	/**
@@ -165,6 +177,11 @@ class Redis
 	private function _write_request($request)
 	{
 		
+		if ($this->debug === TRUE)
+		{
+			log_message('debug', 'Redis unified request: ' . $request);
+		}
+		
 		fwrite($this->_connection, $request);
 		return $this->_read_request();
 		
@@ -178,6 +195,11 @@ class Redis
 	{
 		
 		$type = fgetc($this->_connection);
+
+		if ($this->debug === TRUE)
+		{
+			log_message('debug', 'Redis response type: ' . $type);
+		}
 		
 		switch ($type)
 		{
@@ -197,7 +219,7 @@ class Redis
 				return $this->_multi_bulk_reply();
 				break;
 			default:
-				return false;
+				return FALSE;
 		}
 		
 	}
@@ -209,15 +231,8 @@ class Redis
 	private function _single_line_reply()
 	{
 		$value = trim(fgets($this->_connection));
-		
-		if ($value == 'OK')
-		{
-			return TRUE;
-		}
-		else
-		{
-			return $value;
-		}
+	
+		return $value;
 		
 	}
 	
@@ -227,12 +242,13 @@ class Redis
 	 */
 	private function _error_reply()
 	{
+		
 		// Extract the error message
 		$error = substr(fgets($this->_connection), 4);
 		log_message('error', 'Redis server returned an error: ' . $error);
 		
-		return FALSE;
-
+		return $error;
+		
 	}
 	
 	/**
@@ -246,7 +262,7 @@ class Redis
 	}
 	
 	/**
-	 * Reads to amount of bits to be read and returns value within the pointer and that delimiter
+	 * Reads to amount of bits to be read and returns value within the pointer and the ending delimiter
 	 * @return string
 	 */
 	private function _bulk_reply()
@@ -254,21 +270,24 @@ class Redis
 		
 		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);	
-		return @fgets($this->_connection, $value_length + 1);
+		$response = @fgets($this->_connection, $value_length + 1);
+		
+		// Get rid of the \n\r
+		fgets($this->_connection);		
+		
+		return $response;
 		
 	}
 	
+	/**
+	 * Reads an n amount of bulk replies and return them as an array
+	 * @return array
+	 */
 	private function _multi_bulk_reply()
 	{
 		
 		// Get the amount of values in the response
 		$total_values = (int) fgets($this->_connection);
-		
-		// Return null when there are no elements	
-		if ($total_values == 0)
-		{
-			return NULL;
-		}
 				
 		// Loop all values and add them to the response array
 		for ($i = 0; $i < $total_values; $i++)
@@ -276,7 +295,6 @@ class Redis
 			// Move the pointer to correct for the \n\r
 			fgets($this->_connection, 2);
 			$response[] = $this->_bulk_reply();
-			fgets($this->_connection);		
 			
 		}
 		
@@ -308,7 +326,8 @@ class Redis
 	}
 	
 	/**
-	 * Converts a input to string with spaces seperating values
+	 * Converts a input to string with spaces seperated values. 
+	 * Takes arrays, comma separated lists and plain ol' stirng
 	 * @param mixed 
 	 * @return array
 	 */
@@ -325,7 +344,7 @@ class Redis
 		}
 		else
 		{
-			$string = $input;
+			$string = str_replace(',', '', $input);
 			
 		}
 		
@@ -334,14 +353,19 @@ class Redis
 	}
 	
 	/**
-	 * Execute in debug mode
+	 * Set debug mode
+	 * @param bool set the debug mode on or off
 	 * @return void
 	 */
-	public function debug()
+	public function debug($boolean)
 	{
-		$this->debug = TRUE;
+		$this->debug = (bool) $boolean;
 	}
 	
+	/**
+	 * Kill the connection
+	 * @return void
+	 */
 	function __destruct()
 	{
 		fclose($this->_connection);

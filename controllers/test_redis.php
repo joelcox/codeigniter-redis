@@ -20,6 +20,11 @@ class Test_redis extends CI_Controller {
 		// Generic command
 		$this->unit->run($this->redis->command('PING'), 'PONG', 'Generic command (PING!)');
 		
+		// Overloading
+		$this->unit->run($this->redis->hmset('myhash field1 "Hello" field2 "World"'), 'OK', 'Overloading (__call())');
+		$this->unit->run($this->redis->hget('myhash field1'), '"Hello"', 'Overloading (__call())');
+		$this->unit->run($this->redis->del('myhash'), 1 , 'Overloading (__call())');
+		
 		// SET
 		$this->unit->run($this->redis->set('key', 'value'), 'OK', 'Set a key with a value');
 		
@@ -46,7 +51,6 @@ class Test_redis extends CI_Controller {
 
 		// Display all results
 		echo $this->unit->report();
-		
 		
 	}
 

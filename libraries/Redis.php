@@ -46,7 +46,7 @@ class Redis
 	function __construct()
 	{
 		
-		log_message('debug', 'Redis Class Initialized.');
+		log_message('debug', 'Redis Class Initialized');
 		
 		// Get a CI instance
 		$this->_ci =& get_instance();
@@ -73,9 +73,28 @@ class Redis
 	}
 	
 	/**
+	 * Catches all undefined methods
+	 * @param	string	command to be run
+	 * @param	mixed	arguments to be passed
+	 * @return 	mixed
+	 */
+	public function __call($method, $arguments)
+	{
+		$cmd = strtoupper($method);
+		
+		// Add all arguments
+		for ($i = 0; $i < count($arguments); $i++)
+		{
+			$cmd .= ' ' . $this->_input_to_string($arguments[$i]);
+		}
+		
+		return $this->command($cmd);
+	}
+	
+	/**
 	 * Generic command function, just like redis-cli
-	 * @param string command to be executed
-	 * @return mixed
+	 * @param	string	command to be executed
+	 * @return 	mixed
 	 */
 	public function command($cmd)
 	{
@@ -89,9 +108,9 @@ class Redis
 	
 	/**
 	 * Sets key $key with value $value
-	 * @param string name of the key
-	 * @param string contents for the key
-	 * @return string 'OK'
+	 * @param	string 	name of the key
+	 * @param	string 	contents for the key
+	 * @return 	string 
 	 */
 	public function set($key, $value)
 	{
@@ -103,8 +122,8 @@ class Redis
 	
 	/**
 	 * Gets key $key
-	 * @param string name of the key
-	 * @return string value of the key
+	 * @param	string 	name of the key
+	 * @return 	string 	value of the key
 	 */
 	public function get($key)
 	{
@@ -115,8 +134,8 @@ class Redis
 	
 	/**
 	 * Delete key(s)
-	 * @param mixed keys to be deleted (array or string)
-	 * @return int
+	 * @param	mixed 	keys to be deleted (array or string)
+	 * @return 	int		amount of keys deleted
 	 */
 	public function del($keys)
 	{
@@ -130,8 +149,8 @@ class Redis
 	
 	/**
 	 * Finds all keys that match $pattern
-	 * @param string pattern to be matched
-	 * @return array
+	 * @param	string 	pattern to be matched
+	 * @return 	array
 	 */
 	public function keys($pattern)
 	{
@@ -141,12 +160,12 @@ class Redis
 	}
 	
 	/**
-	 * Connection, reading and writing stuff
+	 * Connection, reading and writing
 	 */
 	
 	/**
 	 * Runs the AUTH command when password is set
-	 * @return void
+	 * @return 	void
 	 */
 	private function _auth()
 	{
@@ -171,8 +190,8 @@ class Redis
 	
 	/**
 	 * Write the formatted request to the socket
-	 * @param string request to be written
-	 * @return mixed
+	 * @param	string 	request to be written
+	 * @return 	mixed
 	 */
 	private function _write_request($request)
 	{
@@ -189,7 +208,7 @@ class Redis
 	
 	/**
 	 * Route each response to the appropriate interpreter
-	 * @return mixed
+	 * @return 	mixed
 	 */
 	private function _read_request()
 	{
@@ -226,7 +245,7 @@ class Redis
 	
 	/**
 	 * Reads the reply before the EOF
-	 * @return mixed
+	 * @return 	mixed
 	 */	
 	private function _single_line_reply()
 	{
@@ -238,7 +257,7 @@ class Redis
 	
 	/**
 	 * Write error to log and return false
-	 * @return boolean
+	 * @return 	bool
 	 */
 	private function _error_reply()
 	{
@@ -253,7 +272,7 @@ class Redis
 	
 	/**
 	 * Returns an integer reply
-	 * @return integer
+	 * @return 	int
 	 */
 	private function _integer_reply()
 	{
@@ -263,7 +282,7 @@ class Redis
 	
 	/**
 	 * Reads to amount of bits to be read and returns value within the pointer and the ending delimiter
-	 * @return string
+	 * @return 	string
 	 */
 	private function _bulk_reply()
 	{
@@ -281,7 +300,7 @@ class Redis
 	
 	/**
 	 * Reads an n amount of bulk replies and return them as an array
-	 * @return array
+	 * @return 	array
 	 */
 	private function _multi_bulk_reply()
 	{
@@ -305,9 +324,9 @@ class Redis
 	
 	/**
 	 * Encode plain-text request to Redis protocol format
-	 * @see http://redis.io/topics/protocol
-	 * @param string request in plain-text
-	 * @return request encoded according to Redis protocol
+	 * @link 	http://redis.io/topics/protocol
+	 * @param 	string 		request in plain-text
+	 * @return 	string 		encoded according to Redis protocol
 	 */
 	private function _encode_request($request)
 	{
@@ -327,9 +346,9 @@ class Redis
 	
 	/**
 	 * Converts a input to string with spaces seperated values. 
-	 * Takes arrays, comma separated lists and plain ol' stirng
-	 * @param mixed 
-	 * @return array
+	 * Takes arrays, comma separated lists and plain ol' string
+	 * @param	mixed 
+	 * @return 	array
 	 */
 	private function _input_to_string($input)
 	{
@@ -354,8 +373,8 @@ class Redis
 	
 	/**
 	 * Set debug mode
-	 * @param bool set the debug mode on or off
-	 * @return void
+	 * @param	bool 	set the debug mode on or off
+	 * @return 	void
 	 */
 	public function debug($boolean)
 	{
@@ -364,7 +383,7 @@ class Redis
 	
 	/**
 	 * Kill the connection
-	 * @return void
+	 * @return 	void
 	 */
 	function __destruct()
 	{

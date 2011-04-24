@@ -25,6 +25,10 @@ You can execute any command using the command() method, just like you're using [
 
     $this->redis->command('PING');
 
+This library also support PHP's [overloading](http://php.net/manual/en/language.oop5.overloading.php) functionality. This means you can call undefined methods, which are then dynamically created for you. These calls are routed to the generic __call() method. Undefined methods take as much arguments as you please.
+
+    $this->redis->hmset('foohash foofield1 "bar1" foofield2 "bar2"');
+
 ### Keys
 
 Set a new key with a value

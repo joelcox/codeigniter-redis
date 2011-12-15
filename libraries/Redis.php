@@ -277,7 +277,6 @@ class Redis
 	private function _integer_reply()
 	{
 		return (int) fgets($this->_connection);
-		
 	}
 	
 	/**
@@ -288,12 +287,17 @@ class Redis
 	{
 		
 		// Get the amount of bits to be read
-		$value_length = (int) fgets($this->_connection);	
-		$response = @fgets($this->_connection, $value_length + 1);
+		$value_length = (int) fgets($this->_connection);
 		
+		if ($value_length == -1)
+		{
+			return NULL;
+		}
+		
+		$response = fgets($this->_connection, $value_length + 1);
+
 		// Get rid of the \n\r
 		fgets($this->_connection);		
-		
 		return $response;
 		
 	}
@@ -353,18 +357,18 @@ class Redis
 	private function _input_to_string($input)
 	{
 	
+		$string = '';
+	
 		if (is_array($input))
 		{
 			foreach ($input as $element)
 			{
-				@$string .= $element . ' ';
-			}
-				
+				$string .= $element . ' ';
+			}	
 		}
 		else
 		{
 			$string = str_replace(',', '', $input);
-			
 		}
 		
 		return $string;

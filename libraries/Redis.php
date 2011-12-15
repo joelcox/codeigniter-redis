@@ -32,17 +32,35 @@
  * THE SOFTWARE.
  */
 
-class Redis
-{
+class Redis {
 	
+	/**
+	 * CI
+	 *
+	 * CodeIgniter instance
+	 * @var 	object
+	 */
 	private $_ci;				// CodeIgniter instance
-	private $_password;			// Password for the server
+	
+	/**
+	 * Connection
+	 *
+	 * Socket handle to the Redis server
+	 * @var		handle
+	 */
 	private $_connection;		// Connection handle
+
+	/**
+	 * Debug
+	 *
+	 * Whether we're in debug mode
+	 * @var		bool
+	 */
+	public $debug = FALSE;
 	
-	public $host;				// Server host
-	public $port;				// Server post where Redis is listening on
-	public $debug;
-	
+	/**
+	 * Constructor
+	 */
 	function __construct()
 	{
 		
@@ -53,12 +71,9 @@ class Redis
 		
 		// Load config
 		$this->_ci->load->config('redis');
-		$this->host = $this->_ci->config->item('redis_host');
-		$this->port = $this->_ci->config->item('redis_port');
-		$this->_password = $this->_ci->config->item('redis_password');
 		
 		// Connect to Redis
-		$this->_connection = @fsockopen($this->host, $this->port, $errno, $errstr, 3);
+		$this->_connection = @fsockopen($this->_ci->config->item('redis_host'), $this->_ci->config->item('redis_port'), $errno, $errstr, 3);
 		
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
@@ -73,6 +88,8 @@ class Redis
 	}
 	
 	/**
+	 * Call
+	 *
 	 * Catches all undefined methods
 	 * @param	string	command to be run
 	 * @param	mixed	arguments to be passed
@@ -92,6 +109,8 @@ class Redis
 	}
 	
 	/**
+	 * Command
+	 *
 	 * Generic command function, just like redis-cli
 	 * @param	string	command to be executed
 	 * @return 	mixed
@@ -164,18 +183,22 @@ class Redis
 	 */
 	
 	/**
+	 * Auth
+	 *
 	 * Runs the AUTH command when password is set
 	 * @return 	void
 	 */
 	private function _auth()
 	{
 		
+		$password = $this->_ci->config->item('redis_password');
+		
 		// Authenticate when password is set
-		if ( ! empty($this->_password))
+		if ( ! empty($password))
 		{
 				
 			// Sent auth command to the server
-			$request = $this->_encode_request('AUTH ' . $this->_password);
+			$request = $this->_encode_request('AUTH ' . $password);
 			 
 			// See if we authenticated successfully
 			if ( ! $this->_write_request($request))
@@ -189,6 +212,8 @@ class Redis
 	}
 	
 	/**
+	 * Write request
+	 *
 	 * Write the formatted request to the socket
 	 * @param	string 	request to be written
 	 * @return 	mixed
@@ -207,6 +232,8 @@ class Redis
 	}
 	
 	/**
+	 * Read request
+	 *
 	 * Route each response to the appropriate interpreter
 	 * @return 	mixed
 	 */
@@ -244,6 +271,8 @@ class Redis
 	}
 	
 	/**
+	 * Single line reply
+	 *
 	 * Reads the reply before the EOF
 	 * @return 	mixed
 	 */	
@@ -256,6 +285,8 @@ class Redis
 	}
 	
 	/**
+	 * Error reply
+	 *
 	 * Write error to log and return false
 	 * @return 	bool
 	 */
@@ -271,6 +302,8 @@ class Redis
 	}
 	
 	/**
+	 * Integer reply
+	 *
 	 * Returns an integer reply
 	 * @return 	int
 	 */
@@ -280,6 +313,8 @@ class Redis
 	}
 	
 	/**
+	 * Bulk reply
+	 *
 	 * Reads to amount of bits to be read and returns value within the pointer and the ending delimiter
 	 * @return 	string
 	 */
@@ -303,6 +338,8 @@ class Redis
 	}
 	
 	/**
+	 * Multi bulk reply
+	 *
 	 * Reads an n amount of bulk replies and return them as an array
 	 * @return 	array
 	 */
@@ -325,8 +362,9 @@ class Redis
 		
 	}
 	
-	
 	/**
+	 * Encode request
+	 *
 	 * Encode plain-text request to Redis protocol format
 	 * @link 	http://redis.io/topics/protocol
 	 * @param 	string 		request in plain-text
@@ -376,6 +414,8 @@ class Redis
 	}
 	
 	/**
+	 * Debug
+	 *
 	 * Set debug mode
 	 * @param	bool 	set the debug mode on or off
 	 * @return 	void
@@ -386,6 +426,8 @@ class Redis
 	}
 	
 	/**
+	 * Destructor
+	 *
 	 * Kill the connection
 	 * @return 	void
 	 */

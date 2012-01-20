@@ -333,7 +333,10 @@ class Redis {
 
 		// Get rid of the \n\r
 		fgets($this->_connection);		
-		return $response;
+		
+		// Empty response fix
+		
+		return isset($response) ? $response : false;
 		
 	}
 	
@@ -358,7 +361,8 @@ class Redis {
 			
 		}
 		
-		return $response;
+		// No response fix
+		return isset($response) ? $response : false;
 		
 	}
 	

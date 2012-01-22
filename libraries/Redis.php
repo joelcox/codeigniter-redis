@@ -260,10 +260,8 @@ class Redis {
 
 		// Get rid of the \n\r
 		fgets($this->_connection);		
-		
-		// Empty response fix
-		
-		return isset($response) ? $response : false;
+				
+		return isset($response) ? $response : FALSE;
 		
 	}
 	
@@ -287,8 +285,7 @@ class Redis {
 			$response[] = $this->_bulk_reply();
 		}
 		
-		// No response fix
-		return isset($response) ? $response : false;
+		return isset($response) ? $response : FALSE;
 		
 	}
 	

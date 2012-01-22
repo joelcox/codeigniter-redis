@@ -40,7 +40,7 @@ class Redis {
 	 * CodeIgniter instance
 	 * @var 	object
 	 */
-	private $_ci;				// CodeIgniter instance
+	private $_ci;				
 	
 	/**
 	 * Connection
@@ -48,7 +48,7 @@ class Redis {
 	 * Socket handle to the Redis server
 	 * @var		handle
 	 */
-	private $_connection;		// Connection handle
+	private $_connection;
 
 	/**
 	 * Debug
@@ -66,10 +66,7 @@ class Redis {
 		
 		log_message('debug', 'Redis Class Initialized');
 		
-		// Get a CI instance
-		$this->_ci =& get_instance();
-		
-		// Load config
+		$this->_ci = &get_instance();
 		$this->_ci->load->config('redis');
 		
 		// Connect to Redis
@@ -78,8 +75,7 @@ class Redis {
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
 		{
-			show_error('Could not connect to Redis at ' . $this->host . ':' . $this->port);
-			
+			show_error('Could not connect to Redis at ' . $this->host . ':' . $this->port);	
 		}
 	
 		// Authenticate when needed
@@ -96,16 +92,8 @@ class Redis {
 	 * @return 	mixed
 	 */
 	public function __call($method, $arguments)
-	{
-		$cmd = strtoupper($method);
-		
-		// Add all arguments
-		for ($i = 0; $i < count($arguments); $i++)
-		{
-			$cmd .= ' ' . $this->_input_to_string($arguments[$i]);
-		}
-		
-		return $this->command($cmd);
+	{		
+		return $this->command(strtoupper($method) . ' ' . $arguments[0]);
 	}
 	
 	/**
@@ -120,68 +108,7 @@ class Redis {
 		$request = $this->_encode_request($cmd);
 		return $this->_write_request($request);
 	}
-	
-	/**
-	 * Key commands
-	 */
-	
-	/**
-	 * Sets key $key with value $value
-	 * @param	string 	name of the key
-	 * @param	string 	contents for the key
-	 * @return 	string 
-	 */
-	public function set($key, $value)
-	{
-		
-		$request = $this->_encode_request('SET ' . $key . ' ' . $value);
-		return $this->_write_request($request);
-		
-	}
-	
-	/**
-	 * Gets key $key
-	 * @param	string 	name of the key
-	 * @return 	string 	value of the key
-	 */
-	public function get($key)
-	{
-		$request = $this->_encode_request('GET ' . $key);
-		return $this->_write_request($request);
-		
-	}
-	
-	/**
-	 * Delete key(s)
-	 * @param	mixed 	keys to be deleted (array or string)
-	 * @return 	int		amount of keys deleted
-	 */
-	public function del($keys)
-	{
-		// Make sure we're dealing with a string that seperates keys by a space
-		$keys = $this->_input_to_string($keys);
-		
-		$request = $this->_encode_request('DEL ' . $keys);
-		return $this->_write_request($request);
-		
-	}
-	
-	/**
-	 * Finds all keys that match $pattern
-	 * @param	string 	pattern to be matched
-	 * @return 	array
-	 */
-	public function keys($pattern)
-	{
-		$request = $this->_encode_request('KEYS ' . $pattern);
-		return $this->_write_request($request);
-		
-	}
-	
-	/**
-	 * Connection, reading and writing
-	 */
-	
+
 	/**
 	 * Auth
 	 *
@@ -355,7 +282,6 @@ class Redis {
 			// Move the pointer to correct for the \n\r
 			fgets($this->_connection, 2);
 			$response[] = $this->_bulk_reply();
-			
 		}
 		
 		return $response;
@@ -385,34 +311,7 @@ class Redis {
 		return $request;
 		
 	}
-	
-	/**
-	 * Converts a input to string with spaces seperated values. 
-	 * Takes arrays, comma separated lists and plain ol' string
-	 * @param	mixed 
-	 * @return 	array
-	 */
-	private function _input_to_string($input)
-	{
-	
-		$string = '';
-	
-		if (is_array($input))
-		{
-			foreach ($input as $element)
-			{
-				$string .= $element . ' ';
-			}	
-		}
-		else
-		{
-			$string = str_replace(',', '', $input);
-		}
 		
-		return $string;
-		
-	}
-	
 	/**
 	 * Debug
 	 *

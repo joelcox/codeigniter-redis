@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit 
+    colors="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    stopOnError="false"
+    stopOnFailure="false"
+    stopOnIncomplete="false"
+    stopOnSkipped="false">
+
+    <testsuites>
+        <testsuite name="CodeIgniter Redis Test Suite">
+            <directory suffix="test.php" phpVersionOperator=">=">tests/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

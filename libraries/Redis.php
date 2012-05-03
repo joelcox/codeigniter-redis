@@ -75,7 +75,7 @@ class Redis {
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
 		{
-			show_error('Could not connect to Redis at ' . $this->host . ':' . $this->port);	
+			show_error('Could not connect to Redis at ' . $this->_ci->config->item('redis_host') . ':' . $this->_ci->config->item('redis_port'));	
 		}
 	
 		// Authenticate when needed

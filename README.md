@@ -1,8 +1,9 @@
 CodeIgniter Redis
 =================
+
 A CodeIgniter interface for the Redis data store. This library tries to adhere 100% to the [defined protocol](http://redis.io/topics/protocol), including responses.
 
-NOTE: This library is still under heavy development. Things may change in future releases.
+[![Build Status](https://secure.travis-ci.org/joelcox/codeigniter-redis.png?branch=develop)](http://travis-ci.org/joelcox/codeigniter-redis)
 
 Requirements
 ------------

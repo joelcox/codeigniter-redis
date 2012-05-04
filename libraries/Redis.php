@@ -91,21 +91,30 @@ class Redis {
 	 * @param	mixed	arguments to be passed
 	 * @return 	mixed
 	 */
-	public function __call($method, $arguments)
-	{		
-		return $this->command(strtoupper($method) . ' ' . $arguments[0]);
-	}
+    public function __call($method, $arguments) {
+        if (! isset($arguments[0])) {
+            return $this->command(strtoupper($method));
+        }
+        if (is_array($arguments[0])) {
+            return $this->command(strtoupper($method), $arguments[0]);
+        }
+        if (isset($arguments[1])) {
+            return $this->command(strtoupper($method) . ' ' . $arguments[0], $arguments[1]);            
+        }
+        return $this->command(strtoupper($method) . ' ' . $arguments[0]);
+    }
 	
 	/**
 	 * Command
 	 *
 	 * Generic command function, just like redis-cli
-	 * @param	string	command to be executed
-	 * @return 	mixed
+     * @param	string	$cmd  command to be executed
+     * @param   mixed   $data Extra data to send (string, array)
+     * @return 	mixed
 	 */
-	public function command($cmd)
+	public function command($cmd, $data = NULL)
 	{
-		$request = $this->_encode_request($cmd);
+		$request = $this->_encode_request($cmd, $data);
 		return $this->_write_request($request);
 	}
 
@@ -294,23 +303,42 @@ class Redis {
 	 *
 	 * Encode plain-text request to Redis protocol format
 	 * @link 	http://redis.io/topics/protocol
-	 * @param 	string 		request in plain-text
-	 * @return 	string 		encoded according to Redis protocol
+	 * @param 	string 	$request	request in plain-text
+     * @param   string  $data       additional data (string or array, depending on the request)
+	 * @return 	string 	encoded according to Redis protocol
 	 */
-	private function _encode_request($request)
-	{
-		$slices = explode(' ', $request);
+    private function _encode_request($request, $data = NULL)
+    {
+		$slices = explode(' ', rtrim($request, ' '));
 		$arguments = count($slices);
-		
+        if ($data !== NULL) 
+        {
+            if (is_array($data)) 
+            {
+                $arguments += (count($data) * 2);
+            } else 
+            {
+                $arguments ++;
+            }
+        }
 		$request = "*" . $arguments . "\r\n";
-		
-		foreach ($slices as $slice)
-		{
+		foreach ($slices as $slice) {
 			$request .= "$" . strlen($slice) . "\r\n" . $slice ."\r\n";
 		}
-		
+        if ($data !== NULL) {
+            if (is_array($data)) 
+            {
+                foreach ($data as $key => $value)
+                {
+                    $request .= "$" . strlen($key) . "\r\n" . $key . "\r\n";
+                    $request .= "$" . strlen($value) . "\r\n" . $value . "\r\n";
+                }
+            } else 
+            {
+                $request .= "$" . strlen($data) . "\r\n" . $data . "\r\n";
+            }
+		}
 		return $request;
-		
 	}
 		
 	/**

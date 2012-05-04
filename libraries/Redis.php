@@ -91,14 +91,18 @@ class Redis {
 	 * @param	mixed	arguments to be passed
 	 * @return 	mixed
 	 */
-    public function __call($method, $arguments) {
-        if (! isset($arguments[0])) {
+    public function __call($method, $arguments)
+    {
+        if ( ! isset($arguments[0]))
+        {
             return $this->command(strtoupper($method));
         }
-        if (is_array($arguments[0])) {
+        if (is_array($arguments[0]))
+        {
             return $this->command(strtoupper($method), $arguments[0]);
         }
-        if (isset($arguments[1])) {
+        if (isset($arguments[1])) 
+        {
             return $this->command(strtoupper($method) . ' ' . $arguments[0], $arguments[1]);            
         }
         return $this->command(strtoupper($method) . ' ' . $arguments[0]);
@@ -311,31 +315,38 @@ class Redis {
     {
 		$slices = explode(' ', rtrim($request, ' '));
 		$arguments = count($slices);
+        
         if ($data !== NULL) 
         {
             if (is_array($data)) 
             {
                 $arguments += (count($data) * 2);
-            } else 
+            } 
+            else 
             {
                 $arguments ++;
             }
         }
-		$request = "*" . $arguments . "\r\n";
-		foreach ($slices as $slice) {
-			$request .= "$" . strlen($slice) . "\r\n" . $slice ."\r\n";
+        
+		$request = '*' . $arguments . "\r\n";
+		foreach ($slices as $slice)
+		{
+			$request .= '$' . strlen($slice) . "\r\n" . $slice ."\r\n";
 		}
-        if ($data !== NULL) {
+		
+        if ($data !== NULL)
+        {
             if (is_array($data)) 
             {
                 foreach ($data as $key => $value)
                 {
-                    $request .= "$" . strlen($key) . "\r\n" . $key . "\r\n";
-                    $request .= "$" . strlen($value) . "\r\n" . $value . "\r\n";
+                    $request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
+                    $request .= '$' . strlen($value) . "\r\n" . $value . "\r\n";
                 }
-            } else 
+            }
+            else 
             {
-                $request .= "$" . strlen($data) . "\r\n" . $data . "\r\n";
+                $request .= '$' . strlen($data) . "\r\n" . $data . "\r\n";
             }
 		}
 		return $request;

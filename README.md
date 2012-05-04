@@ -60,5 +60,6 @@ This library is released under the MIT license.
 
 Thanks to
 ---------
+* [Tim Post](http://alertfalse.com/) for taking the time to fix a long standing 'space' bug.
 * ysbaddaden for the idea of [splitting the different responses](https://github.com/ysbaddaden/php5-redis/blob/master/lib/Redis/Client.php) in his `read_raw_reply()` method.
 * [Lucas Nolte](http://91media.de/) for filing bug reports and submitting patches.

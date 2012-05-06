@@ -242,7 +242,7 @@ class Redis {
 		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);
 		
-		if ($value_length == -1)
+		if ($value_length <= 0)
 		{
 			return NULL;
 		}

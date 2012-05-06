@@ -28,7 +28,7 @@ You can execute any command using the command() method, just like you're using [
 
 This library also support PHP's [overloading](http://php.net/manual/en/language.oop5.overloading.php) functionality. This means you can call undefined methods, which are then dynamically created for you. These calls are routed to the generic __call() method. Undefined methods take as much arguments as you please. You can also pass in dictionary for hashes.
 
-    $this->redis->hmset('foohash, array('key1' => 'value1', 'key2' => 'value2')');
+    $this->redis->hmset('foohash, array('key1' => 'value1', 'key2' => 'value2'));
 
 ### Keys
 

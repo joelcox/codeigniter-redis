@@ -236,7 +236,7 @@ class Redis {
 		$error = substr(fgets($this->_connection), 4);
 		log_message('error', 'Redis server returned an error: ' . $error);
 		
-		return $error;
+		return FALSE;
 		
 	}
 	

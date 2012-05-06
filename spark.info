@@ -1,6 +1,6 @@
 # Spark spec
 name: redis
-version: 0.2.0
+version: 0.3.0
 compatibility: 2.0.0
 dependencies: []
 tags: ["nosql", "database", "data store", "key-value store"]

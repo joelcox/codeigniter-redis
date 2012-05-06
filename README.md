@@ -1,7 +1,7 @@
 CodeIgniter Redis
 =================
 
-A CodeIgniter interface for the Redis data store. This library tries to adhere 100% to the [defined protocol](http://redis.io/topics/protocol), including responses.
+A CodeIgniter interface for the Redis data store. This library tries to adhere to the [defined protocol](http://redis.io/topics/protocol), including responses.
 
 [![Build Status](https://secure.travis-ci.org/joelcox/codeigniter-redis.png?branch=develop)](http://travis-ci.org/joelcox/codeigniter-redis)
 
@@ -26,9 +26,9 @@ You can execute any command using the command() method, just like you're using [
 
     $this->redis->command('PING');
 
-This library also support PHP's [overloading](http://php.net/manual/en/language.oop5.overloading.php) functionality. This means you can call undefined methods, which are then dynamically created for you. These calls are routed to the generic __call() method. Undefined methods take as much arguments as you please.
+This library also support PHP's [overloading](http://php.net/manual/en/language.oop5.overloading.php) functionality. This means you can call undefined methods, which are then dynamically created for you. These calls are routed to the generic __call() method. Undefined methods take as much arguments as you please. You can also pass in dictionary for hashes.
 
-    $this->redis->hmset('foohash foofield1 "bar1" foofield2 "bar2"');
+    $this->redis->hmset('foohash, array('key1' => 'value1', 'key2' => 'value2')');
 
 ### Keys
 
@@ -48,7 +48,6 @@ You can also pass a list of keys to be deleted as an array, space separated list
 
 	$this->redis->del(array('foo', 'foo2'));
 	$this->redis->del('foo foo2));
-	$this->redis->del('foo, foo2));
 	
 Contributing
 ------------

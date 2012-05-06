@@ -22,17 +22,17 @@ Documentation
 This library expects a configuration file to function correctly. A template for this file is provided with the library. 
 
 ### Generic command
-You can execute any command using the command() method, just like you're using [redis-cli](http://code.google.com/p/redis/wiki/RedisCLI).
+You can execute any command using the `command()` method, just like you're using [redis-cli](http://code.google.com/p/redis/wiki/RedisCLI).
 
     $this->redis->command('PING');
 
-This library also support PHP's [overloading](http://php.net/manual/en/language.oop5.overloading.php) functionality. This means you can call undefined methods, which are then dynamically created for you. These calls are routed to the generic __call() method. Undefined methods take as much arguments as you please. You can also pass in dictionary for hashes.
+This library also support PHP's [overloading](http://php.net/manual/en/language.oop5.overloading.php) functionality. This means you can call undefined methods, which are then dynamically created for you. These calls are routed to the generic `__call()` method. You can also pass in arrays.
 
     $this->redis->hmset('foohash, array('key1' => 'value1', 'key2' => 'value2'));
 
-### Keys
+### Examples
 
-Set a new key with a value
+Set a new key with a value and retrieve it again
 
     $this->redis->set('foo', 'bar');
 
@@ -40,18 +40,13 @@ Get a value by its key
 
     $this->redis->get('foo');
     
-Delete a key/keys
-
-	$this->redis->del('foo');
-	
-You can also pass a list of keys to be deleted as an array, space separated list or comma separated list. The space method is according to the defined protocol.
+Delete a bunch of keys
 
 	$this->redis->del(array('foo', 'foo2'));
-	$this->redis->del('foo foo2));
 	
 Contributing
 ------------
-I am a firm believer of social coding, so <strike>if</strike> when you find a bug, please fork my code on GitHub (http://github.com/joelcox/codeigniter-redis) and squash it. I will be happy to merge it back in to the code base (and add you to the "Thanks to" section). If you're not too comfortable using Git or messing with the inner workings of this library, please open a new issue (http://github.com/joelcox/codeigniter-redis/issues). 
+I am a firm believer of social coding, so <strike>if</strike> when you find a bug, please fork my code on [GitHub](http://github.com/joelcox/codeigniter-redis) and squash it. I will be happy to merge it back in to the code base (and add you to the "Thanks to" section). If you're not too comfortable using Git or messing with the inner workings of this library, please open [a new issue](http://github.com/joelcox/codeigniter-redis/issues). 
 
 License
 -------
@@ -62,3 +57,6 @@ Thanks to
 * [Tim Post](http://alertfalse.com/) for taking the time to fix a long standing 'space' bug.
 * ysbaddaden for the idea of [splitting the different responses](https://github.com/ysbaddaden/php5-redis/blob/master/lib/Redis/Client.php) in his `read_raw_reply()` method.
 * [Lucas Nolte](http://91media.de/) for filing bug reports and submitting patches.
+
+Cheers,
+–– [Joël Cox](http://joelcox.nl)

@@ -323,6 +323,29 @@ class Redis {
 		}
 		return $request;
 	}
+	
+	/**
+	 * Info
+	 *
+	 * Overrides the default Redis response,
+	 * so we return a nice array instead of a nasty string.
+	 * @return 	array
+	 */
+	public function info()
+	{
+		$response = $this->command('INFO');
+		$data = array();
+		$pieces = explode("\r\n", $response);
+
+		// Extract the key and value
+		foreach ($pieces as $piece)
+		{
+			$parts = explode(':', $piece);
+			$data[$parts[0]] = $parts[1];
+		}
+		
+		return $data;
+	}
 		
 	/**
 	 * Debug

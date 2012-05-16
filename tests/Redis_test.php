@@ -99,4 +99,14 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 
 	}
 	
+	/**
+	 * Test info
+	 */
+	public function test_info()
+	{
+		$info = $this->redis->info();
+		$this->assertTrue(isset($info['redis_version']));
+		$this->assertTrue(isset($info['process_id']));
+	}
+	
 }

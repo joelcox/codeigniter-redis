@@ -241,16 +241,10 @@ class Redis {
 		
 		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);
+		if ($value_length <= 0) return NULL;
 		
-		if ($value_length <= 0)
-		{
-			return NULL;
-		}
-		
-		$response = fgets($this->_connection, $value_length + 1);
-
-		// Get rid of the \n\r
-		fgets($this->_connection);		
+		$response = rtrim(fread($this->_connection, $value_length + 1));
+		fgets($this->_connection);			// Get rid of the \n\r
 				
 		return isset($response) ? $response : FALSE;
 		

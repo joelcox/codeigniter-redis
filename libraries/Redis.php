@@ -335,12 +335,12 @@ class Redis {
 	{
 		$response = $this->command('INFO');
 		$data = array();
-		$pieces = explode("\r\n", $response);
+		$lines = explode("\r\n", $response);
 
 		// Extract the key and value
-		foreach ($pieces as $piece)
+		foreach ($lines as $line)
 		{
-			$parts = explode(':', $piece);
+			$parts = explode(':', $line);
 			$data[$parts[0]] = $parts[1];
 		}
 		

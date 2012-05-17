@@ -341,7 +341,7 @@ class Redis {
 		foreach ($lines as $line)
 		{
 			$parts = explode(':', $line);
-			$data[$parts[0]] = $parts[1];
+			if (isset($parts[1])) $data[$parts[0]] = $parts[1];
 		}
 		
 		return $data;

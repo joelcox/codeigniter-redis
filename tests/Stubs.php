@@ -4,7 +4,7 @@
  *
  * @see ../libraries/Redis.php
  */
- 
+
 function get_instance()
 {
 	$ci = new StdClass();
@@ -25,17 +25,17 @@ function show_error($message)
 }
 
 class Config_stub {
-	
+
 	public function __construct()
 	{
-		$this->config = array('redis_host' => 'localhost', 'redis_port' => 6379, 'redis_password' => '');		
+		$this->config = array('redis_host' => 'localhost', 'redis_port' => 6379, 'redis_password' => '');
 	}
-	
+
 	public function item($key)
 	{
 		return $this->config[$key];
 	}
-	
+
 }
 
 class Loader_stub {
@@ -43,5 +43,5 @@ class Loader_stub {
 	{
 		return TRUE;
 	}
-	
+
 }

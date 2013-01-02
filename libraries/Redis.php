@@ -76,15 +76,14 @@ class Redis {
 		{
 		    return $this->command(strtoupper($method));
 		}
-		if (is_array($arguments[0]))
+		
+		$array_arg = NULL;
+		if (is_array($arguments[count($arguments) - 1]))
 		{
-		    return $this->command(strtoupper($method), $arguments[0]);
+		    $array_arg = array_pop($arguments);
 		}
-		if (isset($arguments[1])) 
-		{
-		    return $this->command(strtoupper($method) . ' ' . $arguments[0], $arguments[1]);            
-		}
-		return $this->command(strtoupper($method) . ' ' . $arguments[0]);
+		
+		return $this->command(trim(strtoupper($method) . ' ' . implode(' ', $arguments)), $array_arg);
 	}
 	
 	/**

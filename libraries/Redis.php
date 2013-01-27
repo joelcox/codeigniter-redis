@@ -289,9 +289,17 @@ class Redis {
 
 		if ($data !== NULL)
 		{
-			if (is_array($data))
+			$is_associative_array = self::is_associative_array($data);
+
+			// We're dealing with 2n arguments if we're consider the
+			// keys as arguments too.
+			if (is_array($data) AND $is_associative_array)
 			{
 				$arguments += (count($data) * 2);
+			}
+			elseif (is_array($data))
+			{
+				$arguments += count($data);
 			}
 			else
 			{
@@ -311,7 +319,12 @@ class Redis {
 			{
 				foreach ($data as $key => $value)
 				{
-					$request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
+					// Prepend the key if we're dealing with a dict
+					if ($is_associative_array)
+					{
+						$request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
+					}
+
 					$request .= '$' . strlen($value) . "\r\n" . $value . "\r\n";
 				}
 			}

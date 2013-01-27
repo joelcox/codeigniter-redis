@@ -164,4 +164,26 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($this->redis->lrange('foo', 1, 2), array('bacon', 'spam'));
 	}
 
+	/**
+	 * Static helper functions
+	 */
+	public function test_is_associative_array()
+	{
+		$this->assertFalse(Redis::is_associative_array(array('foo', 'bar')));
+
+		$this->assertTrue(Redis::is_associative_array(array(
+			1 => 'foo',
+			2 => 'bar',
+		)));
+
+		$this->assertTrue(Redis::is_associative_array(array(
+			0 => 'foo',
+			2 => 'bar',
+		)));
+
+		$this->assertTrue(Redis::is_associative_array(array(
+			'foo' => 'bar',
+			'spam' => 'eggs',
+		)));
+	}
 }

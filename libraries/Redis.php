@@ -8,11 +8,11 @@
  * @category    	Libraries
  * @author        	Joël Cox
  * @link 			https://github.com/joelcox/codeigniter-redis
- * @link			http://joelcox.nl		
+ * @link			http://joelcox.nl
  * @license         http://www.opensource.org/licenses/mit-license.html
  */
 class Redis {
-	
+
 	/**
 	 * CI
 	 *
@@ -20,7 +20,7 @@ class Redis {
 	 * @var 	object
 	 */
 	private $_ci;
-	
+
 	/**
 	 * Connection
 	 *
@@ -36,32 +36,32 @@ class Redis {
 	 * @var		bool
 	 */
 	public $debug = FALSE;
-	
+
 	/**
 	 * Constructor
 	 */
-	function __construct()
+	public function __construct()
 	{
-		
+
 		log_message('debug', 'Redis Class Initialized');
-		
+
 		$this->_ci = get_instance();
 		$this->_ci->load->config('redis');
-		
+
 		// Connect to Redis
 		$this->_connection = @fsockopen($this->_ci->config->item('redis_host'), $this->_ci->config->item('redis_port'), $errno, $errstr, 3);
-		
+
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
 		{
-			show_error('Could not connect to Redis at ' . $this->_ci->config->item('redis_host') . ':' . $this->_ci->config->item('redis_port'));	
+			show_error('Could not connect to Redis at ' . $this->_ci->config->item('redis_host') . ':' . $this->_ci->config->item('redis_port'));
 		}
-	
+
 		// Authenticate when needed
 		$this->_auth();
-		
+
 	}
-	
+
 	/**
 	 * Call
 	 *
@@ -76,16 +76,18 @@ class Redis {
 		{
 		    return $this->command(strtoupper($method));
 		}
-		
+
+		// Remove the last arguments if it's an array so it can be
+		// passed along individually.
 		$array_arg = NULL;
 		if (is_array($arguments[count($arguments) - 1]))
 		{
 		    $array_arg = array_pop($arguments);
 		}
-		
+
 		return $this->command(trim(strtoupper($method) . ' ' . implode(' ', $arguments)), $array_arg);
 	}
-	
+
 	/**
 	 * Command
 	 *
@@ -108,26 +110,26 @@ class Redis {
 	 */
 	private function _auth()
 	{
-		
+
 		$password = $this->_ci->config->item('redis_password');
-		
+
 		// Authenticate when password is set
 		if ( ! empty($password))
 		{
-				
+
 			// Sent auth command to the server
 			$request = $this->_encode_request('AUTH ' . $password);
-			 
+
 			// See if we authenticated successfully
 			if ( ! $this->_write_request($request))
 			{
 				show_error('Could not connect to Redis, invalid password');
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	/**
 	 * Write request
 	 *
@@ -137,17 +139,17 @@ class Redis {
 	 */
 	private function _write_request($request)
 	{
-		
+
 		if ($this->debug === TRUE)
 		{
 			log_message('debug', 'Redis unified request: ' . $request);
 		}
-		
+
 		fwrite($this->_connection, $request);
 		return $this->_read_request();
-		
+
 	}
-	
+
 	/**
 	 * Read request
 	 *
@@ -156,14 +158,14 @@ class Redis {
 	 */
 	private function _read_request()
 	{
-		
+
 		$type = fgetc($this->_connection);
 
 		if ($this->debug === TRUE)
 		{
 			log_message('debug', 'Redis response type: ' . $type);
 		}
-		
+
 		switch ($type)
 		{
 			case '+':
@@ -184,23 +186,21 @@ class Redis {
 			default:
 				return FALSE;
 		}
-		
+
 	}
-	
+
 	/**
 	 * Single line reply
 	 *
 	 * Reads the reply before the EOF
 	 * @return 	mixed
-	 */	
+	 */
 	private function _single_line_reply()
 	{
 		$value = trim(fgets($this->_connection));
-	
 		return $value;
-		
 	}
-	
+
 	/**
 	 * Error reply
 	 *
@@ -209,15 +209,13 @@ class Redis {
 	 */
 	private function _error_reply()
 	{
-		
 		// Extract the error message
 		$error = substr(fgets($this->_connection), 4);
 		log_message('error', 'Redis server returned an error: ' . $error);
-		
+
 		return FALSE;
-		
 	}
-	
+
 	/**
 	 * Integer reply
 	 *
@@ -228,49 +226,48 @@ class Redis {
 	{
 		return (int) fgets($this->_connection);
 	}
-	
+
 	/**
 	 * Bulk reply
 	 *
-	 * Reads to amount of bits to be read and returns value within the pointer and the ending delimiter
+	 * Reads to amount of bits to be read and returns value within
+	 * the pointer and the ending delimiter
 	 * @return 	string
 	 */
 	private function _bulk_reply()
 	{
-		
 		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);
+
 		if ($value_length <= 0) return NULL;
-		
 		$response = rtrim(fread($this->_connection, $value_length + 1));
-		fgets($this->_connection);			// Get rid of the \n\r
-				
+
+		// Make sure to remove the new line and carriage from the socket buffer
+		fgets($this->_connection);
 		return isset($response) ? $response : FALSE;
-		
 	}
-	
+
 	/**
 	 * Multi bulk reply
 	 *
-	 * Reads an n amount of bulk replies and return them as an array
+	 * Reads n bulk replies and return them as an array
 	 * @return 	array
 	 */
 	private function _multi_bulk_reply()
 	{
-
 		// Get the amount of values in the response
 		$total_values = (int) fgets($this->_connection);
-				
+
 		// Loop all values and add them to the response array
 		for ($i = 0; $i < $total_values; $i++)
 		{
-			// Move the pointer to correct for the \n\r
+			// Remove the new line and carriage return before reading
+			// another bulk reply
 			fgets($this->_connection, 2);
 			$response[] = $this->_bulk_reply();
 		}
-		
+
 		return isset($response) ? $response : FALSE;
-		
 	}
 
 	/**
@@ -292,22 +289,22 @@ class Redis {
 			if (is_array($data))
 			{
 				$arguments += (count($data) * 2);
-			} 
-			else 
+			}
+			else
 			{
 				$arguments ++;
 			}
 		}
-		
+
 		$request = '*' . $arguments . "\r\n";
 		foreach ($slices as $slice)
 		{
 			$request .= '$' . strlen($slice) . "\r\n" . $slice ."\r\n";
 		}
-		
+
 		if ($data !== NULL)
 		{
-			if (is_array($data)) 
+			if (is_array($data))
 			{
 				foreach ($data as $key => $value)
 				{
@@ -315,19 +312,19 @@ class Redis {
 					$request .= '$' . strlen($value) . "\r\n" . $value . "\r\n";
 				}
 			}
-			else 
+			else
 			{
 				$request .= '$' . strlen($data) . "\r\n" . $data . "\r\n";
 			}
 		}
 		return $request;
 	}
-	
+
 	/**
 	 * Info
 	 *
-	 * Overrides the default Redis response,
-	 * so we return a nice array instead of a nasty string.
+	 * Overrides the default Redis response, so we can return a nice array
+	 * of the server info instead of a nasty string.
 	 * @return 	array
 	 */
 	public function info()
@@ -342,10 +339,10 @@ class Redis {
 			$parts = explode(':', $line);
 			if (isset($parts[1])) $data[$parts[0]] = $parts[1];
 		}
-		
+
 		return $data;
 	}
-		
+
 	/**
 	 * Debug
 	 *
@@ -353,11 +350,11 @@ class Redis {
 	 * @param	bool 	set the debug mode on or off
 	 * @return 	void
 	 */
-	public function debug($boolean)
+	public function debug($bool)
 	{
-		$this->debug = (bool) $boolean;
+		$this->debug = (bool) $bool;
 	}
-	
+
 	/**
 	 * Destructor
 	 *
@@ -368,5 +365,5 @@ class Redis {
 	{
 		fclose($this->_connection);
 	}
-	
+
 }

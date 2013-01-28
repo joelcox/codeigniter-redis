@@ -51,7 +51,7 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	public function test_encode_multiple_args()
 	{
 		$this->assertEquals(
-			$this->reflection->invoke($this->redis, 'SET', array('key' => 'value')),
+			$this->reflection->invoke($this->redis, 'SET', array('key', 'value')),
 			"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n"
 		);
 	}
@@ -70,7 +70,7 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	{
 		// Command with a multiple keys and values, passed as an array
 		$this->assertEquals(
-			$this->reflection->invoke($this->redis, 'HMSET key', array('key1' => 'value1', 'key2' => 'value2')),
+			$this->reflection->invoke($this->redis, 'HMSET', array('key', array('key1' => 'value1', 'key2' => 'value2'))),
 			"*6\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n$4\r\nkey2\r\n$6\r\nvalue2\r\n"
 		);
 	}
@@ -79,7 +79,7 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	{
 		// Command with a multiple keys and values, passed as an array, with spaces
 		$this->assertEquals(
-			$this->reflection->invoke($this->redis, 'HMSET key', array('key1' => 'value 1', 'key2' => 'value 2')),
+			$this->reflection->invoke($this->redis, 'HMSET', array('key', array('key1' => 'value 1', 'key2' => 'value 2'))),
 			"*6\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$7\r\nvalue 1\r\n$4\r\nkey2\r\n$7\r\nvalue 2\r\n"
 		);
 	}
@@ -201,6 +201,10 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue(Redis::is_associative_array(array(
 			'foo' => 'bar',
 			'spam' => 'eggs',
+		)));
+
+		$this->assertTrue(Redis::is_associative_array(array(
+			'foo' => 'bar',
 		)));
 	}
 }

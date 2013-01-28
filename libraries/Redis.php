@@ -66,39 +66,28 @@ class Redis {
 	 * Call
 	 *
 	 * Catches all undefined methods
-	 * @param	string	command to be run
-	 * @param	mixed	arguments to be passed
+	 * @param	string	method that was called
+	 * @param	mixed	arguments that were passed
 	 * @return 	mixed
 	 */
 	public function __call($method, $arguments)
 	{
-		if ( ! isset($arguments[0]))
-		{
-		    return $this->command(strtoupper($method));
-		}
-
-		// Remove the last arguments if it's an array so it can be
-		// passed along individually.
-		$array_arg = NULL;
-		if (is_array($arguments[count($arguments) - 1]))
-		{
-		    $array_arg = array_pop($arguments);
-		}
-
-		return $this->command(trim(strtoupper($method) . ' ' . implode(' ', $arguments)), $array_arg);
+		$request = $this->_encode_request($method, $arguments);
+		return $this->_write_request($request);
 	}
 
 	/**
 	 * Command
 	 *
 	 * Generic command function, just like redis-cli
-	 * @param	string	$cmd  command to be executed
-	 * @param   mixed   $data Extra data to send (string, array)
+	 * @param	string	full command as a string
 	 * @return 	mixed
 	 */
-	public function command($cmd, $data = NULL)
+	public function command($string)
 	{
-		$request = $this->_encode_request($cmd, $data);
+		$slices = explode(' ', $string);
+		$request = $this->_encode_request($slices[0], array_slice($slices, 1));
+
 		return $this->_write_request($request);
 	}
 
@@ -279,44 +268,27 @@ class Redis {
 	 * @param   string  additional data (string or array, depending on the request)
 	 * @return 	string 	encoded according to Redis protocol
 	 */
-	private function _encode_request($request, $data = NULL)
+	private function _encode_request($method, $arguments = array())
 	{
-		$slices = explode(' ', rtrim($request, ' '));
-		$arguments = count($slices);
+		$argument_count = $this->_count_arguments($arguments);
 
-		if ($data !== NULL)
+		// Set the argument count and prepend the method
+		$request = '*' . $argument_count . "\r\n";
+		$request .= '$' . strlen($method) . "\r\n" . $method ."\r\n";
+
+		if ($argument_count === 1) return $request;
+
+		// Append all the arguments in the request string
+		foreach ($arguments as $argument)
 		{
-			$is_associative_array = self::is_associative_array($data);
 
-			// We're dealing with 2n arguments if we're consider the
-			// keys as arguments too.
-			if (is_array($data) AND $is_associative_array)
+			if (is_array($argument))
 			{
-				$arguments += (count($data) * 2);
-			}
-			elseif (is_array($data))
-			{
-				$arguments += count($data);
-			}
-			else
-			{
-				$arguments ++;
-			}
-		}
+				$is_associative_array = self::is_associative_array($argument);
 
-		$request = '*' . $arguments . "\r\n";
-		foreach ($slices as $slice)
-		{
-			$request .= '$' . strlen($slice) . "\r\n" . $slice ."\r\n";
-		}
-
-		if ($data !== NULL)
-		{
-			if (is_array($data))
-			{
-				foreach ($data as $key => $value)
+				foreach ($argument as $key => $value)
 				{
-					// Prepend the key if we're dealing with a dict
+					// Prepend the key if we're dealing with a hash
 					if ($is_associative_array)
 					{
 						$request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
@@ -327,10 +299,47 @@ class Redis {
 			}
 			else
 			{
-				$request .= '$' . strlen($data) . "\r\n" . $data . "\r\n";
+				$request .= '$' . strlen($argument) . "\r\n" . $argument . "\r\n";
 			}
+
 		}
+
 		return $request;
+	}
+
+	/**
+	 * Count arguments
+	 *
+	 * Count the amount of arguments we need to pass to Redis while taking
+	 * into consideration lists, hashes and strings
+	 */
+	private function _count_arguments($arguments)
+	{
+		$argument_count = 1;
+
+		// Count how many arguments we need to push over the wire
+		foreach ($arguments as $argument)
+		{
+
+			// We're dealing with 2n arguments if we're consider the
+			// keys as arguments too.
+			if (is_array($argument) AND self::is_associative_array($argument))
+			{
+				$argument_count += (count($argument) * 2);
+			}
+			elseif (is_array($argument))
+			{
+				$argument_count += count($argument);
+			}
+			else
+			{
+				$argument_count++;
+			}
+
+		}
+
+		return $argument_count;
+
 	}
 
 	/**

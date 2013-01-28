@@ -14,6 +14,9 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	public function __construct()
 	{
 		$this->redis = new Redis();
+
+		$this->reflection = new ReflectionMethod('Redis', '_encode_request');
+		$this->reflection->setAccessible(TRUE);
 	}
 
 	public function setUp()
@@ -27,47 +30,58 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	 * Performs low-level tests on the encoding from
 	 * a command to the Redis protocol.
 	 */
-	public function test_encode_request()
+	public function test_encode_single_command()
 	{
-		$method = new ReflectionMethod('Redis', '_encode_request');
-		$method->setAccessible(TRUE);
-
-		// Individual command
 		$this->assertEquals(
-			$method->invoke($this->redis, 'PING'),
+			$this->reflection->invoke($this->redis, 'PING'),
 			"*1\r\n$4\r\nPING\r\n"
 		);
+	}
 
-		// Command with a key and value, passed as a single argument
+	public function test_encode_single_str()
+	{
+		$this->markTestIncomplete('This syntax is no longer supported.');
+
 		$this->assertEquals(
-			$method->invoke($this->redis, 'SET key value'),
+			$this->reflection->invoke($this->redis, 'SET key value'),
 			"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n"
 		);
+	}
 
-		// Command with a key and value, passed as an array
+	public function test_encode_multiple_args()
+	{
 		$this->assertEquals(
-			$method->invoke($this->redis, 'SET', array('key' => 'value')),
+			$this->reflection->invoke($this->redis, 'SET', array('key' => 'value')),
 			"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n"
 		);
+	}
 
-		// Command with a multiple keys and values, passed as a string
+	public function test_encode_single_str_as_assoc_array()
+	{
+		$this->markTestIncomplete('This syntax is no longer supported.');
+
 		$this->assertEquals(
-			$method->invoke($this->redis, 'HMSET key key1 value1 key2 value2'),
+			$this->reflection->invoke($this->redis, 'HMSET key key1 value1 key2 value2'),
 			"*6\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n$4\r\nkey2\r\n$6\r\nvalue2\r\n"
 		);
+	}
 
+	public function test_encode_array()
+	{
 		// Command with a multiple keys and values, passed as an array
 		$this->assertEquals(
-			$method->invoke($this->redis, 'HMSET key', array('key1' => 'value1', 'key2' => 'value2')),
+			$this->reflection->invoke($this->redis, 'HMSET key', array('key1' => 'value1', 'key2' => 'value2')),
 			"*6\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n$4\r\nkey2\r\n$6\r\nvalue2\r\n"
 		);
+	}
 
+	public function test_encode_array_with_spaces()
+	{
 		// Command with a multiple keys and values, passed as an array, with spaces
 		$this->assertEquals(
-			$method->invoke($this->redis, 'HMSET key', array('key1' => 'value 1', 'key2' => 'value 2')),
+			$this->reflection->invoke($this->redis, 'HMSET key', array('key1' => 'value 1', 'key2' => 'value 2')),
 			"*6\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$7\r\nvalue 1\r\n$4\r\nkey2\r\n$7\r\nvalue 2\r\n"
 		);
-
 	}
 
 	/**
@@ -79,12 +93,13 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function test_overloading_single_command()
 	{
-		// Single command
 		$this->assertEquals($this->redis->ping(), 'PONG');
 	}
 
 	public function test_overloading_single_str()
 	{
+		$this->markTestIncomplete('This syntax is no longer supported.');
+
 		$this->assertEquals($this->redis->set('key value'), 'OK');
 		$this->assertEquals($this->redis->get('key'), 'value');
 	}
@@ -97,6 +112,8 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 
 	public function test_overloading_single_str_as_assoc_array()
 	{
+		$this->markTestIncomplete('This syntax is no longer supported.');
+
 		$this->assertEquals($this->redis->hmset('key key1 value1 key2 value2'), 'OK');
 		$this->assertEquals($this->redis->hget('key key1'), 'value1');
 	}

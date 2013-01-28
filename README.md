@@ -44,6 +44,10 @@ Delete a bunch of keys
 
 	$this->redis->del(array('foo', 'foo2'));
 	
+### Working with lists
+
+Because PHP lacks basic list and dictionary/map/hash data types, this library tries to detect this on its own. This is done by using the following heuristic; if the smallest key in an array equals 0 and the largest key equals the length of the array - 1, the array is considered to be a list. In this case, the library's internals will automatically strip away the keys before passing the array to the Redis server.
+	
 Contributing
 ------------
 I am a firm believer of social coding, so <strike>if</strike> when you find a bug, please fork my code on [GitHub](http://github.com/joelcox/codeigniter-redis) and squash it. I will be happy to merge it back in to the code base (and add you to the "Thanks to" section). If you're not too comfortable using Git or messing with the inner workings of this library, please open [a new issue](http://github.com/joelcox/codeigniter-redis/issues). 

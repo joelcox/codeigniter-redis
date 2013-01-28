@@ -286,9 +286,17 @@ class Redis {
 
 		if ($data !== NULL)
 		{
-			if (is_array($data))
+			$is_associative_array = self::is_associative_array($data);
+
+			// We're dealing with 2n arguments if we're consider the
+			// keys as arguments too.
+			if (is_array($data) AND $is_associative_array)
 			{
 				$arguments += (count($data) * 2);
+			}
+			elseif (is_array($data))
+			{
+				$arguments += count($data);
 			}
 			else
 			{
@@ -308,7 +316,12 @@ class Redis {
 			{
 				foreach ($data as $key => $value)
 				{
-					$request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
+					// Prepend the key if we're dealing with a dict
+					if ($is_associative_array)
+					{
+						$request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
+					}
+
 					$request .= '$' . strlen($value) . "\r\n" . $value . "\r\n";
 				}
 			}
@@ -364,6 +377,22 @@ class Redis {
 	function __destruct()
 	{
 		fclose($this->_connection);
+	}
+
+	/**
+	 * Is associative array
+	 *
+	 * Checkes whether the array has only intergers as key, starting at
+	 * index 0, untill the array length - 1.
+	 * @param 	array 	the array to be checked
+	 * @return 	bool
+	 */
+	public static function is_associative_array($array)
+	{
+		$keys = array_keys($array);
+
+		if (min($keys) === 0 AND max($keys) === count($array) - 1) return FALSE;
+		return TRUE;
 	}
 
 }

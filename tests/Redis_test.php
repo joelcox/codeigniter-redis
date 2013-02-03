@@ -38,31 +38,11 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		);
 	}
 
-	public function test_encode_single_str()
-	{
-		$this->markTestIncomplete('This syntax is no longer supported.');
-
-		$this->assertEquals(
-			$this->reflection->invoke($this->redis, 'SET key value'),
-			"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n"
-		);
-	}
-
 	public function test_encode_multiple_args()
 	{
 		$this->assertEquals(
 			$this->reflection->invoke($this->redis, 'SET', array('key', 'value')),
 			"*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n"
-		);
-	}
-
-	public function test_encode_single_str_as_assoc_array()
-	{
-		$this->markTestIncomplete('This syntax is no longer supported.');
-
-		$this->assertEquals(
-			$this->reflection->invoke($this->redis, 'HMSET key key1 value1 key2 value2'),
-			"*6\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n$4\r\nkey2\r\n$6\r\nvalue2\r\n"
 		);
 	}
 
@@ -96,26 +76,10 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($this->redis->ping(), 'PONG');
 	}
 
-	public function test_overloading_single_str()
-	{
-		$this->markTestIncomplete('This syntax is no longer supported.');
-
-		$this->assertEquals($this->redis->set('key value'), 'OK');
-		$this->assertEquals($this->redis->get('key'), 'value');
-	}
-
 	public function test_overloading_multiple_args()
 	{
 		$this->assertEquals($this->redis->set('key', 'value'), 'OK');
 		$this->assertEquals($this->redis->get('key'), 'value');
-	}
-
-	public function test_overloading_single_str_as_assoc_array()
-	{
-		$this->markTestIncomplete('This syntax is no longer supported.');
-
-		$this->assertEquals($this->redis->hmset('key key1 value1 key2 value2'), 'OK');
-		$this->assertEquals($this->redis->hget('key key1'), 'value1');
 	}
 
 	public function test_overloading_array()

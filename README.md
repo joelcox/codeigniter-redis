@@ -12,8 +12,13 @@ Requirements
 3. A [Redis server](http://redis.io) compatible with the unified request protocol (Redis 1.2+)
 
 Spark
--------------
+-----
 This library is also released as a [Spark](http://getsparks.org). If you use this library in any other way, **don't copy the autoload.php to your config directory**.
+
+Breaking changes
+----------------
+
+As of v0.4, this library does not longer support the plain text syntax for overloaded commands (i.e. `$this->redis->set('foo bar'). Please pass extra command arguments as real PHP arguments instead (i.e. `$this->redis->set('foo', 'bar')`). You can still use the plain text syntax using the `command` method (e.g. `$this->redis->command('SET foo bar')`) if you need this functionality.
 
 Documentation
 -------------
@@ -50,7 +55,7 @@ Because PHP lacks basic list and dictionary/map/hash data types, this library tr
 	
 Contributing
 ------------
-I am a firm believer of social coding, so <strike>if</strike> when you find a bug, please fork my code on [GitHub](http://github.com/joelcox/codeigniter-redis) and squash it. I will be happy to merge it back in to the code base (and add you to the "Thanks to" section). If you're not too comfortable using Git or messing with the inner workings of this library, please open [a new issue](http://github.com/joelcox/codeigniter-redis/issues). 
+I am a firm believer of social coding, so if you find a bug, please fork this code on [GitHub](http://github.com/joelcox/codeigniter-redis) and squash it. I will be happy to merge it back in to the code base (and add you to the "Thanks to" section). If you're not too comfortable using Git or messing with the inner workings of this library, please open [a new issue](http://github.com/joelcox/codeigniter-redis/issues). 
 
 License
 -------

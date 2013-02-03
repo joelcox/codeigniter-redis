@@ -99,6 +99,17 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Plain text command
+	 *
+	 * Test plain text commands using the command method.
+	 */
+	public function test_plain_text_command()
+	{
+		$this->assertEquals($this->redis->command('SET foo bar'), 'OK');
+		$this->assertEquals($this->redis->command('GET foo'), 'bar');
+	}
+
+	/**
 	 * Commands
 	 *
 	 * Test individual Redis commands so we have a more granular way

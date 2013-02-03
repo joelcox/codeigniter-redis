@@ -38,6 +38,14 @@ class Redis {
 	public $debug = FALSE;
 
 	/**
+	 * CRLF
+	 *
+	 * User to delimiter arguments in the Redis unified request protocol
+	 * @var		string
+	 */
+	const CRLF = "\r\n";
+
+	/**
 	 * Constructor
 	 */
 	public function __construct()
@@ -273,8 +281,8 @@ class Redis {
 		$argument_count = $this->_count_arguments($arguments);
 
 		// Set the argument count and prepend the method
-		$request = '*' . $argument_count . "\r\n";
-		$request .= '$' . strlen($method) . "\r\n" . $method ."\r\n";
+		$request = '*' . $argument_count . self::CRLF;
+		$request .= '$' . strlen($method) . self::CRLF . $method . self::CRLF;
 
 		if ($argument_count === 1) return $request;
 
@@ -291,15 +299,15 @@ class Redis {
 					// Prepend the key if we're dealing with a hash
 					if ($is_associative_array)
 					{
-						$request .= '$' . strlen($key) . "\r\n" . $key . "\r\n";
+						$request .= '$' . strlen($key) . self::CRLF . $key . self::CRLF;
 					}
 
-					$request .= '$' . strlen($value) . "\r\n" . $value . "\r\n";
+					$request .= '$' . strlen($value) . self::CRLF . $value . self::CRLF;
 				}
 			}
 			else
 			{
-				$request .= '$' . strlen($argument) . "\r\n" . $argument . "\r\n";
+				$request .= '$' . strlen($argument) . self::CRLF . $argument . self::CRLF;
 			}
 
 		}
@@ -353,7 +361,7 @@ class Redis {
 	{
 		$response = $this->command('INFO');
 		$data = array();
-		$lines = explode("\r\n", $response);
+		$lines = explode(self::CRLF, $response);
 
 		// Extract the key and value
 		foreach ($lines as $line)

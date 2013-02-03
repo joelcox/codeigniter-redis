@@ -18,7 +18,7 @@ This library is also released as a [Spark](http://getsparks.org). If you use thi
 Breaking changes
 ----------------
 
-As of v0.4, this library does not longer support the plain text syntax for overloaded commands (i.e. `$this->redis->set('foo bar'). Please pass extra command arguments as real PHP arguments instead (i.e. `$this->redis->set('foo', 'bar')`). You can still use the plain text syntax using the `command` method (e.g. `$this->redis->command('SET foo bar')`) if you need this functionality.
+As of v0.4, this library does not longer support the plain text syntax for overloaded commands (i.e. `$this->redis->set('foo bar')`). Please pass extra command arguments as real PHP arguments instead (i.e. `$this->redis->set('foo', 'bar')`). You can still use the plain text syntax using the `command` method (e.g. `$this->redis->command('SET foo bar')`) if you need this functionality.
 
 Documentation
 -------------

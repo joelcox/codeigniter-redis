@@ -7,6 +7,7 @@
  * @package        	CodeIgniter
  * @category    	Libraries
  * @author        	Joël Cox
+ * @version			v0.4
  * @link 			https://github.com/joelcox/codeigniter-redis
  * @link			http://joelcox.nl
  * @license         http://www.opensource.org/licenses/mit-license.html

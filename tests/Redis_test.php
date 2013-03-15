@@ -194,6 +194,9 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		 * Adapted from Chad Birch's answer found here: http://stackoverflow.com/a/853898
 		 * Chad is awesome, you can check out his profile here: http://stackoverflow.com/users/41665/chad-birch
 		 */
+		$this->markTestSkipped('Work in progress');
+
+
 		$get_random_string = function($length)
 		{
 			$valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -216,8 +219,9 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 			$this->redis->set('test', $payload);
 			$rlen = strlen($this->redis->get('test'));
 			$this->assertEquals($wlen, $rlen);
- 			$len += 512;
+		 	$len += 512;
 		}
+
 		$this->redis->del('test');
 		return TRUE;
 	}

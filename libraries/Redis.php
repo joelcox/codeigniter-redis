@@ -58,7 +58,7 @@ class Redis {
 		$this->_ci->load->config('redis');
 
 		// Connect to Redis
-		$this->_connection = @fsockopen($this->_ci->config->item('redis_host'), $this->_ci->config->item('redis_port'), $errno, $errstr, 3);
+		$this->_connection = @stream_socket_client('tcp://' . $this->_ci->config->item('redis_host') . ':' . $this->_ci->config->item('redis_port'), $errno, $errstr, 3);
 
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
@@ -234,15 +234,12 @@ class Redis {
 	 */
 	private function _bulk_reply()
 	{
-		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);
 
-		if ($value_length <= 0) return NULL;
-		$response = rtrim(fread($this->_connection, $value_length + 1));
-
-		// Make sure to remove the new line and carriage from the socket buffer
-		fgets($this->_connection);
-		return isset($response) ? $response : FALSE;
+		if ($value_length > 0 AND $this->_connection)
+		{
+			return fgets($this->_connection, $value_length + 1);
+		}
 	}
 
 	/**

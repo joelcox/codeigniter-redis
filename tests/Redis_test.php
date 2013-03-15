@@ -182,4 +182,43 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 			'foo' => 'bar',
 		)));
 	}
+
+	/**
+	 * Test successively larger reads from a single line reply (after writing successively larger values)
+	 * This is the only place in the code where the expected length of a response is not known in advance.
+	 */
+	public function test_chunk_reads()
+	{
+
+		/**
+		 * Adapted from Chad Birch's answer found here: http://stackoverflow.com/a/853898
+		 * Chad is awesome, you can check out his profile here: http://stackoverflow.com/users/41665/chad-birch
+		 */
+		$get_random_string = function($length)
+		{
+			$valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+			$random_string = '';
+			$num_valid_chars = strlen($valid_chars);
+			for ($i = 0; $i < $length; $i++)
+			{
+				$random_pick = mt_rand(1, $num_valid_chars);
+				$random_char = $valid_chars[$random_pick-1];
+				$random_string .= $random_char;
+			}
+			return $random_string;
+		};
+
+		$len = 512;
+		while ($len < (30 * 1024))
+		{
+			$payload = $get_random_string($len);
+			$wlen = strlen($payload);
+			$this->redis->set('test', $payload);
+			$rlen = strlen($this->redis->get('test'));
+			$this->assertEquals($wlen, $rlen);
+ 			$len += 512;
+		}
+		$this->redis->del('test');
+		return TRUE;
+	}
 }

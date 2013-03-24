@@ -115,11 +115,8 @@ class Redis {
 		if ( ! empty($password))
 		{
 
-			// Sent auth command to the server
-			$response = $this->command('AUTH ' . $password);
-
 			// See if we authenticated successfully
-			if ( $response != 'OK' )
+			if ($this->command('AUTH ' . $password))
 			{
 				show_error('Could not connect to Redis, invalid password');
 			}

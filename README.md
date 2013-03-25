@@ -26,6 +26,33 @@ Documentation
 ### Configuration
 This library expects a configuration file to function correctly. A template for this file is provided with the library. 
 
+### Multiple Redis instances
+If you want to use multiple Redis servers, you can create additional config files for each server, prefixed by `redis_`. Example:
+
+```
+# config/redis_slave.php
+
+$config['redis_host'] = 'tcp://[::1]';
+$config['redis_port'] = 6379;
+$config['redis_password'] = 'dev';
+```
+
+To use this connection group, you must load the Redis library like this:
+
+```
+$this->load->library('redis', array('connection_group' => 'slave'), 'redis_slave');
+$this->redis_slave->command('PING')
+```
+
+This will create a new object named `redis_slave` which uses the configuration options of your `config/redis_slave.php` file.
+
+Of course, if you only want one server the following will also work:
+
+```
+$this->load->library('redis');
+$this->redis->command('PING');
+```
+
 ### Generic command
 You can execute any command using the `command()` method, just like you're using [redis-cli](http://code.google.com/p/redis/wiki/RedisCLI).
 

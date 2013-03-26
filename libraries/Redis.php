@@ -49,13 +49,18 @@ class Redis {
 	/**
 	 * Constructor
 	 */
-	public function __construct()
+	public function __construct($params)
 	{
 
 		log_message('debug', 'Redis Class Initialized');
 
 		$this->_ci = get_instance();
-		$this->_ci->load->config('redis');
+
+		if (array_key_exists('connection_group', $params)) {
+		  $this->_ci->load->config('redis_' . $params['connection_group']);
+		} else {
+		  $this->_ci->load->config('redis');
+		}
 
 		// Connect to Redis
 		$this->_connection = @fsockopen($this->_ci->config->item('redis_host'), $this->_ci->config->item('redis_port'), $errno, $errstr, 3);

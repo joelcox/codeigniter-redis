@@ -33,6 +33,7 @@ class Config_stub {
 
 	public function item($key)
 	{
+		if ( ! isset($this->config[$key])) return NULL;
 		return $this->config[$key];
 	}
 

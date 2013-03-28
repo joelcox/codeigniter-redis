@@ -116,7 +116,7 @@ class CI_Redis {
 		{
 
 			// See if we authenticated successfully
-			if ($this->command('AUTH ' . $password))
+			if ($this->command('AUTH ' . $password) !== 'OK')
 			{
 				show_error('Could not connect to Redis, invalid password');
 			}

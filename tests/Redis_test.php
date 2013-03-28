@@ -13,9 +13,9 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 
 	public function __construct()
 	{
-		$this->redis = new Redis();
+		$this->redis = new CI_Redis();
 
-		$this->reflection = new ReflectionMethod('Redis', '_encode_request');
+		$this->reflection = new ReflectionMethod('CI_Redis', '_encode_request');
 		$this->reflection->setAccessible(TRUE);
 	}
 
@@ -161,24 +161,24 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function test_is_associative_array()
 	{
-		$this->assertFalse(Redis::is_associative_array(array('foo', 'bar')));
+		$this->assertFalse(CI_Redis::is_associative_array(array('foo', 'bar')));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			1 => 'foo',
 			2 => 'bar',
 		)));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			0 => 'foo',
 			2 => 'bar',
 		)));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			'foo' => 'bar',
 			'spam' => 'eggs',
 		)));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			'foo' => 'bar',
 		)));
 	}

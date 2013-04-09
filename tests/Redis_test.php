@@ -184,6 +184,19 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Empty hash fields
+	 * @see Issue #33
+	 */
+	public function test_empty_hash_values()
+	{
+		$this->redis->hset('hash', 'foo', 'bar');
+		$this->redis->hset('hash', 'spam', 'eggs');
+		$this->assertEquals($this->redis->hvals('hash'), array('bar', 'eggs'));
+		$this->assertEquals($this->redis->hvals('hash'), array('bar', 'eggs'));
+		$this->assertEquals($this->redis->set('foo', 'bar'), 'OK');
+	}
+
+	/**
 	 * Test successively larger reads from a single line reply (after writing successively larger values)
 	 * This is the only place in the code where the expected length of a response is not known in advance.
 	 */

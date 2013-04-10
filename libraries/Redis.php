@@ -234,7 +234,7 @@ class CI_Redis {
 		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);
 
-		if ($value_length <= 0) return NULL;
+		if ($value_length < 0) return NULL;
 		$response = rtrim(fread($this->_connection, $value_length + 1));
 
 		// Make sure to remove the new line and carriage from the socket buffer

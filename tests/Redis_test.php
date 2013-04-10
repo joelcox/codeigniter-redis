@@ -189,10 +189,8 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function test_empty_hash_values()
 	{
-		$this->redis->hset('hash', 'foo', 'bar');
-		$this->redis->hset('hash', 'spam', 'eggs');
-		$this->assertEquals($this->redis->hvals('hash'), array('bar', 'eggs'));
-		$this->assertEquals($this->redis->hvals('hash'), array('bar', 'eggs'));
+		$this->redis->hmset('hash', array('foo' => 'bar', 'bacon' => ''));
+		$this->assertEquals($this->redis->hvals('hash'), array('bar', ''));
 		$this->assertEquals($this->redis->set('foo', 'bar'), 'OK');
 	}
 

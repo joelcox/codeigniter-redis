@@ -225,4 +225,44 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		$this->redis->del('test');
 		return TRUE;
 	}
+
+	/**
+	 * Test connection groups
+	 *
+	 * Supporting multiple connection groups impacted the structure of the
+	 * configuration file. All valid options are tested here.
+	 */
+	public function test_connection_groups()
+	{
+		// Original configuration file
+		Config_stub::$config = array(
+			'redis_host' => 'localhost',
+			'redis_port' => 6379,
+			'redis_password' => ''
+		);
+
+		$redis = new Redis();
+		$this->assertEquals($redis->ping(), 'PONG');
+
+		// Multiple connection groups
+		Config_stub::$config = array(
+			'redis_default' => array(
+				'host' => 'localhost',
+				'port' => 6379,
+				'password' => ''
+			),
+			'redis_slave' => array(
+				'host' => 'localhost',
+				'port' => 6379,
+				'password' => ''
+			)
+		);
+
+		$redis_default = new Redis();
+		$this->assertEquals($redis_default->ping(), 'PONG');
+
+		$redis_slave = new Redis(array('connection_group' => 'slave'));
+		$this->assertEquals($redis_slave->ping(), 'PONG');
+
+	}
 }

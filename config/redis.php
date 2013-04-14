@@ -5,7 +5,11 @@
  * @see ../libraries/Redis.php
  */
 
-// Connection details
-$config['redis_host'] = 'localhost';		// IP address or host
-$config['redis_port'] = '6379';				// Default Redis port is 6379
-$config['redis_password'] = '';				// Can be left empty when the server does not require AUTH
+// Default connection group
+$config['redis_default']['host'] = 'localhost';		// IP address or host
+$config['redis_default']['port'] = '6379';			// Default Redis port is 6379
+$config['redis_default']['password'] = '';			// Can be left empty when the server does not require AUTH
+
+$config['redis_slave']['host'] = '';
+$config['redis_slave']['port'] = '6379';
+$config['redis_slave']['password'] = '';

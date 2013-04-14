@@ -12,7 +12,7 @@
  * @link			http://joelcox.nl
  * @license         http://www.opensource.org/licenses/mit-license.html
  */
-class Redis {
+class CI_Redis {
 
 	/**
 	 * CI
@@ -115,11 +115,8 @@ class Redis {
 		if ( ! empty($password))
 		{
 
-			// Sent auth command to the server
-			$request = $this->_encode_request('AUTH ' . $password);
-
 			// See if we authenticated successfully
-			if ( ! $this->_write_request($request))
+			if ($this->command('AUTH ' . $password) !== 'OK')
 			{
 				show_error('Could not connect to Redis, invalid password');
 			}
@@ -237,7 +234,7 @@ class Redis {
 		// Get the amount of bits to be read
 		$value_length = (int) fgets($this->_connection);
 
-		if ($value_length <= 0) return NULL;
+		if ($value_length < 0) return NULL;
 		$response = rtrim(fread($this->_connection, $value_length + 1));
 
 		// Make sure to remove the new line and carriage from the socket buffer
@@ -394,7 +391,10 @@ class Redis {
 	 */
 	function __destruct()
 	{
-		fclose($this->_connection);
+	  if($this->_connection)
+	  {
+		  fclose($this->_connection);
+		}
 	}
 
 	/**

@@ -13,9 +13,9 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 
 	public function __construct()
 	{
-		$this->redis = new Redis();
+		$this->redis = new CI_Redis();
 
-		$this->reflection = new ReflectionMethod('Redis', '_encode_request');
+		$this->reflection = new ReflectionMethod('CI_Redis', '_encode_request');
 		$this->reflection->setAccessible(TRUE);
 	}
 
@@ -161,25 +161,79 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function test_is_associative_array()
 	{
-		$this->assertFalse(Redis::is_associative_array(array('foo', 'bar')));
+		$this->assertFalse(CI_Redis::is_associative_array(array('foo', 'bar')));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			1 => 'foo',
 			2 => 'bar',
 		)));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			0 => 'foo',
 			2 => 'bar',
 		)));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			'foo' => 'bar',
 			'spam' => 'eggs',
 		)));
 
-		$this->assertTrue(Redis::is_associative_array(array(
+		$this->assertTrue(CI_Redis::is_associative_array(array(
 			'foo' => 'bar',
 		)));
+	}
+
+	/**
+	 * Empty hash fields
+	 * @see Issue #33
+	 */
+	public function test_empty_hash_values()
+	{
+		$this->redis->hmset('hash', array('foo' => 'bar', 'bacon' => ''));
+		$this->assertEquals($this->redis->hvals('hash'), array('bar', ''));
+		$this->assertEquals($this->redis->set('foo', 'bar'), 'OK');
+	}
+
+	/**
+	 * Test successively larger reads from a single line reply (after writing successively larger values)
+	 * This is the only place in the code where the expected length of a response is not known in advance.
+	 */
+	public function test_chunk_reads()
+	{
+
+		/**
+		 * Adapted from Chad Birch's answer found here: http://stackoverflow.com/a/853898
+		 * Chad is awesome, you can check out his profile here: http://stackoverflow.com/users/41665/chad-birch
+		 */
+		$this->markTestSkipped('Work in progress');
+
+
+		$get_random_string = function($length)
+		{
+			$valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+			$random_string = '';
+			$num_valid_chars = strlen($valid_chars);
+			for ($i = 0; $i < $length; $i++)
+			{
+				$random_pick = mt_rand(1, $num_valid_chars);
+				$random_char = $valid_chars[$random_pick-1];
+				$random_string .= $random_char;
+			}
+			return $random_string;
+		};
+
+		$len = 512;
+		while ($len < (30 * 1024))
+		{
+			$payload = $get_random_string($len);
+			$wlen = strlen($payload);
+			$this->redis->set('test', $payload);
+			$rlen = strlen($this->redis->get('test'));
+			$this->assertEquals($wlen, $rlen);
+		 	$len += 512;
+		}
+
+		$this->redis->del('test');
+		return TRUE;
 	}
 }

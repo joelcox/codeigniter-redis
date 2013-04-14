@@ -26,14 +26,18 @@ function show_error($message)
 
 class Config_stub {
 
-	public function __construct()
-	{
-		$this->config = array('redis_host' => 'localhost', 'redis_port' => 6379, 'redis_password' => '');
-	}
+	public static $config = array(
+		'redis_default' => array(
+			'host' => 'localhost',
+			'port' => 6379,
+			'password' => ''
+		)
+	);
 
 	public function item($key)
 	{
-		return $this->config[$key];
+		if ( ! isset(self::$config[$key])) return NULL;
+		return self::$config[$key];
 	}
 
 }

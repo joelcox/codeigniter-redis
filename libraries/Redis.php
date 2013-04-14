@@ -49,7 +49,7 @@ class CI_Redis {
 	/**
 	 * Constructor
 	 */
-	public function __construct()
+	public function __construct($params = array())
 	{
 
 		log_message('debug', 'Redis Class Initialized');
@@ -57,17 +57,38 @@ class CI_Redis {
 		$this->_ci = get_instance();
 		$this->_ci->load->config('redis');
 
+		// Check for the different styles of configs
+		if (isset($params['connection_group']))
+		{
+			// Specific connection group
+			$config = $this->_ci->config->item('redis_' . $params['connection_group']);
+		}
+		elseif (is_array($this->_ci->config->item('redis_default')))
+		{
+			// Default connection group
+			$config = $this->_ci->config->item('redis_default');
+		}
+		else
+		{
+			// Original config style
+			$config = array(
+				'host' => $this->_ci->config->item('redis_host'),
+				'port' => $this->_ci->config->item('redis_port'),
+				'password' => $this->_ci->config->item('redis_password'),
+			);
+		}
+
 		// Connect to Redis
-		$this->_connection = @fsockopen($this->_ci->config->item('redis_host'), $this->_ci->config->item('redis_port'), $errno, $errstr, 3);
+		$this->_connection = @fsockopen($config['host'], $config['port'], $errno, $errstr, 3);
 
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
 		{
-			show_error('Could not connect to Redis at ' . $this->_ci->config->item('redis_host') . ':' . $this->_ci->config->item('redis_port'));
+			show_error('Could not connect to Redis at ' . $config['host'] . ':' . $config['redis_port']);
 		}
 
 		// Authenticate when needed
-		$this->_auth();
+		$this->_auth($config['password']);
 
 	}
 
@@ -104,15 +125,14 @@ class CI_Redis {
 	 * Auth
 	 *
 	 * Runs the AUTH command when password is set
+	 * @param 	string	password for the Redis server
 	 * @return 	void
 	 */
-	private function _auth()
+	private function _auth($password = NULL)
 	{
 
-		$password = $this->_ci->config->item('redis_password');
-
 		// Authenticate when password is set
-		if ( ! empty($password))
+		if ($password !== NULL)
 		{
 
 			// See if we authenticated successfully

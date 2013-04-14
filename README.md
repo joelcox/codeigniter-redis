@@ -26,6 +26,24 @@ Documentation
 ### Configuration
 This library expects a configuration file to function correctly. A template for this file is provided with the library. 
 
+### Multiple connection groups 
+If you want to use multiple Redis servers, you can add an additional array to the configuration file with the details of this server. 
+
+```
+$config['redis_slave']['host'] = 'otherhost';
+$config['redis_slave']['port'] = '6379';
+$config['redis_slave']['password'] = '';
+```
+
+To use this connection group, you must create a new instance of this library like this:
+
+```
+$this->load->library('redis', array('connection_group' => 'slave'), 'redis_slave');
+$this->redis_slave->command('PING')
+```
+
+This will create a new object named `redis_slave` which will use the configuration options of the `slave` connection group. The default connection group is loaded by when no connection group is specified.
+
 ### Generic command
 You can execute any command using the `command()` method, just like you're using [redis-cli](http://code.google.com/p/redis/wiki/RedisCLI).
 
@@ -63,6 +81,7 @@ This library is released under the MIT license.
 
 Thanks to
 ---------
+* [Alex Williams](http://www.alexwilliams.ca) for his working on connection groups. ✨
 * [Daniel Hunsaker](http://danhunsaker.wordpress.com) for fixing a bug related to passing 3+ arguments and his input on different issues.
 * [Tim Post](http://alertfalse.com/) for taking the time to fix a long standing 'space' bug.
 * ysbaddaden for the idea of [splitting the different responses](https://github.com/ysbaddaden/php5-redis/blob/master/lib/Redis/Client.php) in his `read_raw_reply()` method.

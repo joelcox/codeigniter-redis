@@ -241,7 +241,7 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 			'redis_password' => ''
 		);
 
-		$redis = new Redis();
+		$redis = new CI_Redis();
 		$this->assertEquals($redis->ping(), 'PONG');
 
 		// Multiple connection groups
@@ -258,10 +258,10 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 			)
 		);
 
-		$redis_default = new Redis();
+		$redis_default = new CI_Redis();
 		$this->assertEquals($redis_default->ping(), 'PONG');
 
-		$redis_slave = new Redis(array('connection_group' => 'slave'));
+		$redis_slave = new CI_Redis(array('connection_group' => 'slave'));
 		$this->assertEquals($redis_slave->ping(), 'PONG');
 
 	}

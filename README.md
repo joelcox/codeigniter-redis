@@ -81,6 +81,7 @@ This library is released under the MIT license.
 
 Thanks to
 ---------
+* [Muhammad Fikri](https://github.com/swznd) for fixing the 8kb choking bug.
 * [Alex Williams](http://www.alexwilliams.ca) for his working on connection groups. ✨
 * [Daniel Hunsaker](http://danhunsaker.wordpress.com) for fixing a bug related to passing 3+ arguments and his input on different issues.
 * [Tim Post](http://alertfalse.com/) for taking the time to fix a long standing 'space' bug.

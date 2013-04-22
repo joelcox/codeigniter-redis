@@ -255,12 +255,26 @@ class CI_Redis {
 		$value_length = (int) fgets($this->_connection);
 
 		if ($value_length <= 0) return NULL;
-		$response = rtrim(fread($this->_connection, $value_length + 1));
+
+		$read = 0;
+		$response = '';
+
+		// handle if reply data more than 8192 bytes.
+		while ($read < $value_length) 
+		{
+		  $remaining = $value_length - $read;
+
+		  $block = $remaining < 8192 ? $remaining : 8192;
+
+		  $response .= rtrim(fread($this->_connection, $block));
+
+		  $read += $block;
+		}
 
 		// Make sure to remove the new line and carriage from the socket buffer
 		fgets($this->_connection);
 		return isset($response) ? $response : FALSE;
-	}
+	} 
 
 	/**
 	 * Multi bulk reply

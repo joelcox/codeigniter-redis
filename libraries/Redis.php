@@ -132,7 +132,7 @@ class CI_Redis {
 	{
 
 		// Authenticate when password is set
-		if ($password !== NULL)
+		if ( ! empty($password))
 		{
 
 			// See if we authenticated successfully

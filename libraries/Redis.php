@@ -84,7 +84,7 @@ class CI_Redis {
 		// Display an error message if connection failed
 		if ( ! $this->_connection)
 		{
-			show_error('Could not connect to Redis at ' . $config['host'] . ':' . $config['redis_port']);
+			show_error('Could not connect to Redis at ' . $config['host'] . ':' . $config['port']);
 		}
 
 		// Authenticate when needed
@@ -260,7 +260,7 @@ class CI_Redis {
 		$response = '';
 
 		// handle if reply data more than 8192 bytes.
-		while ($read < $value_length) 
+		while ($read < $value_length)
 		{
 		  $remaining = $value_length - $read;
 
@@ -274,7 +274,7 @@ class CI_Redis {
 		// Make sure to remove the new line and carriage from the socket buffer
 		fgets($this->_connection);
 		return isset($response) ? $response : FALSE;
-	} 
+	}
 
 	/**
 	 * Multi bulk reply

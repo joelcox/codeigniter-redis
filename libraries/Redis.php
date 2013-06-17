@@ -389,11 +389,14 @@ class CI_Redis {
 	 * of the server info instead of a nasty string.
 	 * @return 	array
 	 */
-	public function info($extra=false)
+	public function info($section=false)
 	{
-		if ($extra!=false){
-			$response = $this->command('INFO '.$extra);
-		} else {
+		if ($section!=false)
+		{
+			$response = $this->command('INFO '.$section);
+		}
+		else 
+		{
 			$response = $this->command('INFO');
 		}
 		$data = array();

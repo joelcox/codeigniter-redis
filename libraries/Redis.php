@@ -389,9 +389,16 @@ class CI_Redis {
 	 * of the server info instead of a nasty string.
 	 * @return 	array
 	 */
-	public function info()
+	public function info($section=FALSE)
 	{
-		$response = $this->command('INFO');
+		if ($section!=FALSE)
+		{
+			$response = $this->command('INFO '.$section);
+		}
+		else 
+		{
+			$response = $this->command('INFO');
+		}
 		$data = array();
 		$lines = explode(self::CRLF, $response);
 

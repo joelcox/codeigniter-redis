@@ -296,7 +296,7 @@ class CI_Redis {
 		}
 
 		// Make sure to remove the new line and carriage from the socket buffer
-		fgets($this->_connection);
+		$response .= fgets($this->_connection);
 		return isset($response) ? $response : FALSE;
 	}
 

@@ -121,30 +121,6 @@ class CI_Redis {
 		return $this->_write_request($request);
 	}
 
-
-	/**
-	 * Multi-delete using pattern
-	 *
-	 * Deletes all keys matching a string. Can use wildcards
-	 * @param       string  string to delete keys whom match
-	 * @return      mixed
-	 *
-	 * Example pattern: user:*
-	 * The above example would remove all keys starting with user:
-	 */
-	public function delPattern($pattern)
-	{
-			$keys = $this->command("KEYS $pattern");
-			if ( empty($keys) ) {
-					return 0;
-			}
-			foreach ( $keys as $key ) {
-					$this->command("DEL $key");
-			}
-
-	}
-
-
 	/**
 	 * Auth
 	 *

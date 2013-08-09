@@ -66,10 +66,6 @@ Get a value by its key
 Delete a bunch of keys
 
 	$this->redis->del(array('foo', 'foo2'));
-
-Delete keys matching a wildcard pattern
-
-	$this->redis->delPattern('foo*');
 	
 ### Working with lists
 

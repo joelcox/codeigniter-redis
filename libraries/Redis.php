@@ -259,24 +259,21 @@ class CI_Redis {
 		$read = 0;
 		$response = '';
 
-		// handle if reply data more than 8192 bytes.
+		// Handle if reply data more than 8192 bytes.
 		while ($read < $value_length)
 		{
-		  $remaining = $value_length - $read;
-
-		  $block = $remaining < 8192 ? $remaining : 8192;
-
-		  $response .= rtrim(fread($this->_connection, $block));
-
-		  $read += $block;
+			$remaining = $value_length - $read;
+			$block = $remaining < 8192 ? $remaining : 8192;
+			$response .= rtrim(fread($this->_connection, $block));
+			$read += $block;
 		}
 
-		// empty out any last buffer data in the response
+		// Empty out any last buffer data in the response
 		$response .= fgets($this->_connection);
 
 		// Make sure to remove the new line and carriage from the socket buffer
 		$response = rtrim($response);
-		
+
 		return isset($response) ? $response : FALSE;
 	}
 
@@ -393,16 +390,17 @@ class CI_Redis {
 	 * of the server info instead of a nasty string.
 	 * @return 	array
 	 */
-	public function info($section=FALSE)
+	public function info($section = FALSE)
 	{
-		if ($section!=FALSE)
+		if ($section !== FALSE)
 		{
-			$response = $this->command('INFO '.$section);
+			$response = $this->command('INFO '. $section);
 		}
-		else 
+		else
 		{
 			$response = $this->command('INFO');
 		}
+		
 		$data = array();
 		$lines = explode(self::CRLF, $response);
 
@@ -436,10 +434,7 @@ class CI_Redis {
 	 */
 	function __destruct()
 	{
-	  if($this->_connection)
-	  {
-		  fclose($this->_connection);
-		}
+		if ($this->_connection) fclose($this->_connection);
 	}
 
 	/**

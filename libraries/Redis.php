@@ -271,8 +271,12 @@ class CI_Redis {
 		  $read += $block;
 		}
 
+		// empty out any last buffer data in the response
+		$response .= fgets($this->_connection);
+
 		// Make sure to remove the new line and carriage from the socket buffer
-		fgets($this->_connection);
+		$response = rtrim($response);
+		
 		return isset($response) ? $response : FALSE;
 	}
 

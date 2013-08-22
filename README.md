@@ -81,11 +81,12 @@ This library is released under the MIT license.
 
 Thanks to
 ---------
+* [Eric Greer](https://github.com/integrii)
+* [Martijn Pannevis](http://martijnpannevis.nl/blog/)
 * [Muhammad Fikri](https://github.com/swznd) for fixing the 8kb choking bug.
 * [Alex Williams](http://www.alexwilliams.ca) for his working on connection groups. ✨
 * [Daniel Hunsaker](http://danhunsaker.wordpress.com) for fixing a bug related to passing 3+ arguments and his input on different issues.
 * [Tim Post](http://alertfalse.com/) for taking the time to fix a long standing 'space' bug.
-* ysbaddaden for the idea of [splitting the different responses](https://github.com/ysbaddaden/php5-redis/blob/master/lib/Redis/Client.php) in his `read_raw_reply()` method.
 * [Lucas Nolte](http://91media.de/) for filing bug reports and submitting patches.
 
 Cheers,

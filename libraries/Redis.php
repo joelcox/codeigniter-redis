@@ -400,7 +400,7 @@ class CI_Redis {
 		{
 			$response = $this->command('INFO');
 		}
-		
+
 		$data = array();
 		$lines = explode(self::CRLF, $response);
 

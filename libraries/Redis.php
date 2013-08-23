@@ -222,25 +222,43 @@ class CI_Redis {
 		return (int) fgets($this->_connection);
 	}
 
-	/**
-	 * Bulk reply
-	 *
-	 * Reads to amount of bits to be read and returns value within
-	 * the pointer and the ending delimiter
-	 * @return 	string
-	 */
-	private function _bulk_reply()
-	{
-		// Get the amount of bits to be read
-		$value_length = (int) fgets($this->_connection);
+    /**
+     * Bulk reply
+     *
+     * Reads to amount of bits to be read and returns value within
+     * the pointer and the ending delimiter
+     * @return  string
+     */
+    private function _bulk_reply()
+    {
+        // Get the amount of bits to be read
+        $value_length = (int) fgets($this->_connection);
 
-		if ($value_length < 0) return NULL;
-		$response = rtrim(fread($this->_connection, $value_length + 1));
+        if ($value_length <= 0) return NULL;
 
-		// Make sure to remove the new line and carriage from the socket buffer
-		fgets($this->_connection);
-		return isset($response) ? $response : FALSE;
-	}
+        $read = 0;
+        $response = '';
+
+        // handle if reply data more than 8192 bytes.
+        while ($read < $value_length)
+        {
+          $remaining = $value_length - $read;
+
+          $block = $remaining < 8192 ? $remaining : 8192;
+
+          $response .= rtrim(fread($this->_connection, $block));
+
+          $read += $block;
+        }
+
+        // empty out any last buffer data in the response
+        $response .= fgets($this->_connection);
+
+        // Make sure to remove the new line and carriage from the socket buffer
+        $response = rtrim($response);
+
+        return isset($response) ? $response : FALSE;
+    }
 
 	/**
 	 * Multi bulk reply

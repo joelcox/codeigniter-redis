@@ -209,10 +209,6 @@ class CI_Redis {
 			
 			} // end while value_length is greater than 0
 
-			// send line endings with multi-block send commands
-			fwrite($this->_connection, "\r\n", 2);
-
-
 		} // end else (value length is greather than 8192)
 
 		// read our request into a variable

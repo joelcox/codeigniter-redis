@@ -79,7 +79,6 @@ class CI_Redis {
 		}
 
 		// Connect to Redis
-error_log("----------------- CONNECTING TO REDIS ----------------");
 		$this->_connection = @fsockopen($config['host'], $config['port'], $errno, $errstr, 3);
 
 		// Display an error message if connection failed
@@ -183,14 +182,12 @@ error_log("----------------- CONNECTING TO REDIS ----------------");
 
 		// if there isnt any data, just return
 		if ($value_length <= 0) {
-error_log("ERROR - WRITING BLANK REQUEST ABORTED");
 			return NULL;
 		}
 
 		// Handle reply if data is less than or equal to 8192 bytes, just send it over
 		if ( $value_length <= 8192 ) {
 
-error_log("WRITING REQUEST: $request");
 			fwrite($this->_connection, $request);
 		
 		// If data is greater than 8192 bytes, chunk it in 8192 byte chunks	
@@ -203,7 +200,6 @@ error_log("WRITING REQUEST: $request");
 				}
 
 				// send our chunk
-error_log("WRITING REQUEST: $request");
 				fwrite($this->_connection, $request, $sendSize);
 
 				// how much is left to send?
@@ -239,39 +235,31 @@ error_log("WRITING REQUEST: $request");
 
 		while ( $type == "\r" || $type == "\n") {
 			$type = fgetc($this->_connection);
-error_log("ERROR: FOUND RETURN CHARACTER IN REPLY TYPE");
 		}
 
 		if ($this->debug === TRUE)
 		{
 			log_message('debug', 'Redis response type: ' . $type);
 		}
-error_log("TYPE: $type");
 
 		switch ($type)
 		{
 			case '+':
-error_log("ERROR SINGLE LINE");
 				return $this->_single_line_reply();
 				break;
 			case '-':
-error_log("ERROR REPLY");
 				return $this->_error_reply();
 				break;
 			case ':':
-error_log("INTEGER REPLY");
 				return $this->_integer_reply();
 				break;
 			case '$':
-error_log("BULK REPLY");
 				return $this->_bulk_reply();
 				break;
 			case '*':
-error_log("MULTI BULK");
 				return $this->_multi_bulk_reply();
 				break;
 			default:
-error_log("DEFAULT REPLY AS FALSE");
 				return FALSE;
 		}
 

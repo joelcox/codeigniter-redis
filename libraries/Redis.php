@@ -148,10 +148,12 @@ class CI_Redis {
 	/**
 	 * Clear Socket
 	 *
-	 * Emptires the socket buffer of _connection so data does not bleed
+	 * Empty the socket buffer of theconnection so data does not bleed over
+	 * to the next message.
 	 * @return 	NULL
 	 */
-	public function _clear_socket() {
+	public function _clear_socket()
+	{
 		// Read one character at a time
 		fflush($this->_connection);
 		return NULL;
@@ -193,27 +195,26 @@ class CI_Redis {
 					$send_size = 8192;
 				}
 
-				// send our chunk
+				// Send our chunk
 				fwrite($this->_connection, $request, $send_size);
 
-				// how much is left to send?
+				// How much is left to send?
 				$value_length = $value_length - $send_size;
 
-			}
+				// Remove data sent from outgoing data
+				$request = substr($request, $send_size, $value_length);
 
+			}
 		}
 
 		// Read our request into a variable
 		$return = $this->_read_request();
 
-		// Clear the socket so no data bleeds over
+		// Clear the socket so no data remains in the buffer
 		$this->_clear_socket();
 
 		return $return;
-
 	}
-
-
 
 	/**
 	 * Read request
@@ -223,11 +224,18 @@ class CI_Redis {
 	 */
 	private function _read_request()
 	{
-
 		$type = fgetc($this->_connection);
 
-		while ( $type == "\r" || $type == "\n") {
+		// Times we will attempt to trash bad data in search of a
+		// valid type indicator
+		$response_types = array('+', '-', ':', '$', '*');
+		$type_error_limit = 50;
+		$try = 0;
+
+		while ( ! in_array($type, $response_types) && $try < $type_error_limit)
+		{
 			$type = fgetc($this->_connection);
+			$try++;
 		}
 
 		if ($this->debug === TRUE)
@@ -268,6 +276,7 @@ class CI_Redis {
 	{
 		$value = rtrim(fgets($this->_connection));
         $this->_clear_socket();
+
 		return $value;
 	}
 
@@ -281,6 +290,7 @@ class CI_Redis {
 	{
 		// Extract the error message
 		$error = substr(rtrim(fgets($this->_connection)), 4);
+
 		log_message('error', 'Redis server returned an error: ' . $error);
         $this->_clear_socket();
 
@@ -307,52 +317,64 @@ class CI_Redis {
      */
     private function _bulk_reply()
     {
-        // Get the amount of bits to be read
-     	$value_length = (int) rtrim(fgets($this->_connection));
 
-        // A bulk reply of one indicates an empty string, so get that out
-        // of the socket before returning
-        if ($value_length <= 0)
-        {
-	    	fgets($this->_connection);
-	        return NULL;
-		}
+		// How long is the data we are reading? Support waiting for data to
+		// fully return from redis and enter into socket.
+        $value_length = (int) fgets($this->_connection);
 
-        $read = 0;
+        if ($value_length <= 0) return NULL;
+
         $response = '';
 
 		// Handle reply if data is less than or equal to 8192 bytes, just read it
 		if ($value_length <= 8192)
 		{
-			$response = rtrim(fread($this->_connection, $value_length));
+			$response = fread($this->_connection, $value_length);
 		}
 		else
 		{
-			// Handle reply if data more than 8192 bytes.
-        	while ($value_length > 0)
-        	{
+			$data_left = $value_length;
 
-				// if we have more than 8192, only take what we can handle
-				if ($value_length > 8192) $read_size = 8192;
+				// If the data left is greater than 0, keep reading
+	        	while ($data_left > 0 ) {
+
+				// If we have more than 8192, only take what we can handle
+				if ($data_left > 8192)
+				{
+					$read_size = 8192;
+				}
+				else
+				{
+					$read_size = $data_left;
+				}
 
 				// Read our chunk
-				$response .= fread($this->_connection, $read_size);
+				$chunk = fread($this->_connection, $read_size);
 
-				// How much is left to read?
-				$value_length = $value_length - $read_size;
+				// Support reading very long responses that don't come through
+				// in one fread
+
+				$chunk_length = strlen($chunk);
+				while ($chunk_length < $read_size)
+				{
+					$keep_reading = $read_size - $chunk_length;
+					$chunk .= fread($this->_connection, $keep_reading);
+					$chunk_length = strlen($chunk);
+				}
+
+				$response .= $chunk;
+
+				// Re-calculate how much data is left to read
+				$data_left = $data_left - $read_size;
 
 			}
 
 		}
 
-
-        // Make sure to remove the new line and carriage from the socket buffer
-        $response = trim($response);
-
 		// Clear the socket in case anything remains in there
 		$this->_clear_socket();
 
-        return isset($response) ? $response : FALSE;
+	return isset($response) ? $response : FALSE;
     }
 
 	/**

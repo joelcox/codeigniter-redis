@@ -115,6 +115,7 @@ class CI_Redis {
 	 */
 	public function command($string)
 	{
+
 		$slices = explode(' ', $string);
 		$request = $this->_encode_request($slices[0], array_slice($slices, 1));
 
@@ -146,12 +147,27 @@ class CI_Redis {
 	}
 
 	/**
+	 * Clear Socket
+	 *
+	 * Emptires the socket buffer of _connection so data does not bleed
+	 * @return 	NULL
+	 */
+	public function _clear_socket() {
+		// read one character at a time
+		fflush ( $this->_connection );
+
+		return NULL;
+	}
+
+
+	/**
 	 * Write request
 	 *
 	 * Write the formatted request to the socket
 	 * @param	string 	request to be written
 	 * @return 	mixed
 	 */
+
 	private function _write_request($request)
 	{
 
@@ -160,10 +176,51 @@ class CI_Redis {
 			log_message('debug', 'Redis unified request: ' . $request);
 		}
 
-		fwrite($this->_connection, $request);
-		return $this->_read_request();
+
+		// how long is the data we are sending?
+		$value_length = strlen($request);
+
+		// if there isnt any data, just return
+		if ($value_length <= 0) {
+			return NULL;
+		}
+
+		// Handle reply if data is less than or equal to 8192 bytes, just send it over
+		if ( $value_length <= 8192 ) {
+
+			fwrite($this->_connection, $request);
+		
+		// If data is greater than 8192 bytes, chunk it in 8192 byte chunks	
+		} else {
+			while ( $value_length > 0 ) { 
+
+				// if we have more than 8192, only take what we can handle
+				if ( $value_length > 8192 ) {
+					$sendSize = 8192;
+				}
+
+				// send our chunk
+				fwrite($this->_connection, $request, $sendSize);
+
+				// how much is left to send?
+				$value_length = $value_length - $sendSize;
+			
+			} // end while value_length is greater than 0
+
+
+		} // end else (value length is greather than 8192)
+
+		// read our request into a variable
+		$return = $this->_read_request();
+
+		// clear the socket so no data bleeds over
+		$this->_clear_socket();
+
+		return $return;
 
 	}
+
+
 
 	/**
 	 * Read request
@@ -175,6 +232,10 @@ class CI_Redis {
 	{
 
 		$type = fgetc($this->_connection);
+
+		while ( $type == "\r" || $type == "\n") {
+			$type = fgetc($this->_connection);
+		}
 
 		if ($this->debug === TRUE)
 		{
@@ -212,7 +273,8 @@ class CI_Redis {
 	 */
 	private function _single_line_reply()
 	{
-		$value = trim(fgets($this->_connection));
+		$value = rtrim(fgets($this->_connection));
+                $this->_clear_socket();
 		return $value;
 	}
 
@@ -225,8 +287,9 @@ class CI_Redis {
 	private function _error_reply()
 	{
 		// Extract the error message
-		$error = substr(fgets($this->_connection), 4);
+		$error = substr(fgets(rtrim(($this->_connection), 4)));
 		log_message('error', 'Redis server returned an error: ' . $error);
+                $this->_clear_socket();
 
 		return FALSE;
 	}
@@ -239,7 +302,7 @@ class CI_Redis {
 	 */
 	private function _integer_reply()
 	{
-		return (int) fgets($this->_connection);
+		return (int) rtrim(fgets($this->_connection));
 	}
 
     /**
@@ -252,28 +315,46 @@ class CI_Redis {
     private function _bulk_reply()
     {
         // Get the amount of bits to be read
-        $value_length = (int) fgets($this->_connection);
+        $value_length = (int) rtrim(fgets($this->_connection));
 
         if ($value_length <= 0) return NULL;
 
+	// prevent read and response variables from being re-used
         $read = 0;
         $response = '';
 
-		// Handle if reply data more than 8192 bytes.
-        while ($read < $value_length)
-        {
-	        $remaining = $value_length - $read;
-			$block = $remaining < 8192 ? $remaining : 8192;
+	// Handle reply if data is less than or equal to 8192 bytes, just read it
+	if ( $value_length <= 8192 ) {
 
-			$response .= rtrim(fread($this->_connection, $block));
-			$read += $block;
-        }
+		$response = rtrim(fread($this->_connection, $value_length));
+	
+	// If reply is greater than 8192 bytes, read it in 8192 byte chunks	
+	} else {
+		// Handle reply if data more than 8192 bytes.
+        	while ( $value_length > 0 ) { 
 
-        // Empty out any last buffer data in the response
-        $response .= fgets($this->_connection);
+			// if we have more than 8192, only take what we can handle
+			if ( $value_length > 8192 ) {
+				$readSize = 8192;
+			}
+
+			// read our chunk
+			$response .= fread($this->_connection, $readSize );
+
+			// how much is left to read?
+			$value_length = $value_length - $readSize;
+		
+		} // end while value_length is greater than 0
+
+
+	} // end else (value length is greather than 8192)
+
 
         // Make sure to remove the new line and carriage from the socket buffer
-        $response = rtrim($response);
+        $response = trim($response);
+
+	// clear the socket in case anything remains in there
+	$this->_clear_socket();
 
         return isset($response) ? $response : FALSE;
     }
@@ -297,6 +378,9 @@ class CI_Redis {
 			fgets($this->_connection, 2);
 			$response[] = $this->_bulk_reply();
 		}
+
+		// clear the socket
+		$this->_clear_socket();
 
 		return isset($response) ? $response : FALSE;
 	}

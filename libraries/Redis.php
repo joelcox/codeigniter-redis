@@ -204,16 +204,17 @@ class CI_Redis {
 				// how much is left to send?
 				$value_length = $value_length - $sendSize;
 
-				// remove data sent from outgoing dataA
+				// remove data sent from outgoing data
 				$request = substr($request, $sendSize, $value_length);
 			
 			} // end while value_length is greater than 0
 
-		} // end else (value length is greather than 8192)
+		} // end else (value length is greater than 8192)
 
 		// read our request into a variable
 		$return = $this->_read_request();
 
+		// trim errant endings from returned data
 		$return = rtrim($return);
 
 		
@@ -371,18 +372,15 @@ class CI_Redis {
 		
 		} // end while value_length is greater than 0
 
-
 	} // end else (value length is greather than 8192)
 
 
 
-        // Make sure to remove the new line and carriage from the socket buffer
-        //$response = rtrim($response);
 
 	// clear the socket in case anything remains in there
 	$this->_clear_socket();
 
-        return isset($response) ? $response : FALSE;
+	return isset($response) ? $response : FALSE;
     }
 
 	/**

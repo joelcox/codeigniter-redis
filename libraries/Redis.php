@@ -423,79 +423,40 @@ class CI_Redis {
 	 * @param   string  additional data (string or array, depending on the request)
 	 * @return 	string 	encoded according to Redis protocol
 	 */
-	private function _encode_request($method, $arguments = array())
-	{
-		$argument_count = $this->_count_arguments($arguments);
+    private function _encode_request($method, $arguments = array())
+    {
+        $request = '$' . strlen($method) . self::CRLF . $method . self::CRLF;
+        $_args = 1;
 
-		// Set the argument count and prepend the method
-		$request = '*' . $argument_count . self::CRLF;
-		$request .= '$' . strlen($method) . self::CRLF . $method . self::CRLF;
+        // Append all the arguments in the request string
+        foreach ($arguments as $argument)
+        {
+            if (is_array($argument))
+            {
+                foreach ($argument as $key => $value)
+                {
+                    // Prepend the key if we're dealing with a hash
+                    if (!is_int($key))
+                    {
+                        $request .= '$' . strlen($key) . self::CRLF . $key . self::CRLF;
+                        $_args++;
+                    }
 
-		if ($argument_count === 1) return $request;
+                    $request .= '$' . strlen($value) . self::CRLF . $value . self::CRLF;
+                    $_args++;
+                }
+            }
+            else
+            {
+                $request .= '$' . strlen($argument) . self::CRLF . $argument . self::CRLF;
+                $_args++;
+            }
+        }
 
-		// Append all the arguments in the request string
-		foreach ($arguments as $argument)
-		{
+        $request = '*' . $_args . self::CRLF . $request;
 
-			if (is_array($argument))
-			{
-				$is_associative_array = self::is_associative_array($argument);
-
-				foreach ($argument as $key => $value)
-				{
-					// Prepend the key if we're dealing with a hash
-					if ($is_associative_array)
-					{
-						$request .= '$' . strlen($key) . self::CRLF . $key . self::CRLF;
-					}
-
-					$request .= '$' . strlen($value) . self::CRLF . $value . self::CRLF;
-				}
-			}
-			else
-			{
-				$request .= '$' . strlen($argument) . self::CRLF . $argument . self::CRLF;
-			}
-
-		}
-
-		return $request;
-	}
-
-	/**
-	 * Count arguments
-	 *
-	 * Count the amount of arguments we need to pass to Redis while taking
-	 * into consideration lists, hashes and strings
-	 */
-	private function _count_arguments($arguments)
-	{
-		$argument_count = 1;
-
-		// Count how many arguments we need to push over the wire
-		foreach ($arguments as $argument)
-		{
-
-			// We're dealing with 2n arguments if we're consider the
-			// keys as arguments too.
-			if (is_array($argument) AND self::is_associative_array($argument))
-			{
-				$argument_count += (count($argument) * 2);
-			}
-			elseif (is_array($argument))
-			{
-				$argument_count += count($argument);
-			}
-			else
-			{
-				$argument_count++;
-			}
-
-		}
-
-		return $argument_count;
-
-	}
+        return $request;
+    }
 
 	/**
 	 * Info
@@ -550,21 +511,4 @@ class CI_Redis {
 	{
 		if ($this->_connection) fclose($this->_connection);
 	}
-
-	/**
-	 * Is associative array
-	 *
-	 * Checkes whether the array has only intergers as key, starting at
-	 * index 0, untill the array length - 1.
-	 * @param 	array 	the array to be checked
-	 * @return 	bool
-	 */
-	public static function is_associative_array($array)
-	{
-		$keys = array_keys($array);
-
-		if (min($keys) === 0 AND max($keys) === count($array) - 1) return FALSE;
-		return TRUE;
-	}
-
 }

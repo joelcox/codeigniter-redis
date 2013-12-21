@@ -64,6 +64,15 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		);
 	}
 
+	public function test_encode_array_mixed_values()
+	{
+		// Command with a multiple keys and values, passed as an array, with spaces
+		$this->assertEquals(
+			$this->reflection->invoke($this->redis, 'HMSET', array('key', array('key1' => 'value 1', 'value 2'))),
+			"*5\r\n$5\r\nHMSET\r\n$3\r\nkey\r\n$4\r\nkey1\r\n$7\r\nvalue 1\r\n$7\r\nvalue 2\r\n"
+		);
+	}
+
 	/**
 	 * Test overloading
 	 *
@@ -160,33 +169,6 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 	{
 		$this->redis->lpush('foo', 'spam', 'bacon', 'eggs');
 		$this->assertEquals($this->redis->lrange('foo', 1, 2), array('bacon', 'spam'));
-	}
-
-	/**
-	 * Static helper functions
-	 */
-	public function test_is_associative_array()
-	{
-		$this->assertFalse(CI_Redis::is_associative_array(array('foo', 'bar')));
-
-		$this->assertTrue(CI_Redis::is_associative_array(array(
-			1 => 'foo',
-			2 => 'bar',
-		)));
-
-		$this->assertTrue(CI_Redis::is_associative_array(array(
-			0 => 'foo',
-			2 => 'bar',
-		)));
-
-		$this->assertTrue(CI_Redis::is_associative_array(array(
-			'foo' => 'bar',
-			'spam' => 'eggs',
-		)));
-
-		$this->assertTrue(CI_Redis::is_associative_array(array(
-			'foo' => 'bar',
-		)));
 	}
 
 	/**

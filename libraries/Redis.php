@@ -330,13 +330,14 @@ class CI_Redis {
 		if ($value_length <= 8192)
 		{
 			$response = fread($this->_connection, $value_length);
+			log_message('debug', $response);
 		}
 		else
 		{
 			$data_left = $value_length;
 
-				// If the data left is greater than 0, keep reading
-	        	while ($data_left > 0 ) {
+			// If the data left is greater than 0, keep reading
+			while ($data_left > 0 ) {
 
 				// If we have more than 8192, only take what we can handle
 				if ($data_left > 8192)
@@ -389,23 +390,21 @@ class CI_Redis {
 		$response = array();
 		$total_values = (int) fgets($this->_connection);
 
-		// Loop all values and add them to the response array
+		log_message('debug', 'Expecting ' . $total_values . ' values in multi bulk reply');
+
 		for ($i = 0; $i < $total_values; $i++)
 		{
-			// Remove the new line and carriage return before reading
-			// another bulk reply
-			fgets($this->_connection, 2);
 
-			// If this is a second or later pass, we also need to get rid
-			// of the $ indicating a new bulk reply and its length.
-			if ($i > 0)
+			$embedded_response_type = fgets($this->_connection, 2);
+
+			if ($embedded_response_type === '*')
 			{
-				fgets($this->_connection);
-				fgets($this->_connection, 2);
+				$response[] = $this->_multi_bulk_reply();
 			}
-
-			$response[] = $this->_bulk_reply();
-
+			else
+			{
+				$response[] = $this->_bulk_reply();
+			}
 		}
 
 		// Clear the socket

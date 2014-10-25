@@ -97,7 +97,8 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue(isset($info['redis_version']));
 		$this->assertTrue(isset($info['process_id']));
 	}
-		public function test_info_section()
+
+	public function test_info_section()
 	{
 		$info = $this->redis->info("memory");
 		$this->assertTrue(isset($info['used_memory_human']));
@@ -278,5 +279,19 @@ class RedisTest extends PHPUnit_Framework_TestCase {
 		$redis_slave = new CI_Redis(array('connection_group' => 'slave'));
 		$this->assertEquals($redis_slave->ping(), 'PONG');
 
+	}
+
+	public function test_transaction_block_bulk()
+	{
+		$this->redis->hmset('foo', array('bar' => 'baz'));
+		$this->redis->hmset('spam', array('eggs' => 'bacon'));
+
+		$this->redis->multi();
+		$this->assertEquals($this->redis->hmget('foo', 'bar'), 'QUEUED');
+		$this->assertEquals($this->redis->hmget('spam', 'eggs'), 'QUEUED');
+		$result = $this->redis->exec();
+
+		$this->assertEquals($result[0][0], 'baz');
+		$this->assertEquals($result[1][0], 'bacon');
 	}
 }

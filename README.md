@@ -1,6 +1,9 @@
 CodeIgniter Redis
 =================
 
+This library is deprecated. We recommend migrating to [Predis](https://github.com/nrk/predis).
+----------------------------------------------------------------------------------------------
+
 A CodeIgniter interface for the Redis data store. This library tries to adhere to the [defined protocol](http://redis.io/topics/protocol), including responses.
 
 [![Build Status](https://secure.travis-ci.org/joelcox/codeigniter-redis.png?branch=develop)](http://travis-ci.org/joelcox/codeigniter-redis)
